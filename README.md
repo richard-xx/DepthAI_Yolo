@@ -2,7 +2,8 @@
 
 ![Yolo-on-device](https://user-images.githubusercontent.com/56075061/144863222-a52be87e-b1f0-4a0a-b39b-f865bbb6e4a4.png)
 
-该存储库 (修改自 [device-decoding](https://github.com/luxonis/depthai-experiments/tree/master/gen2-yolo/device-decoding))
+该存储库 (
+修改自 [device-decoding](https://github.com/luxonis/depthai-experiments/tree/master/gen2-yolo/device-decoding))
 包含直接使用 DepthAI SDK (`main_sdk.py`) 或 DepthAI API (`main_api.py`) 在设备上解码运行 Yolo 目标检测的代码。目前，支持的版本有：
 
 * `YoloV3` & `YoloV3-tiny`,
@@ -13,7 +14,10 @@
 
 我们在 `main_sdk.py` 和 `main_api.py` 中使用相同样式的 JSON 解析，但您也可以在代码中手动设置这两种情况下的值。
 
-> `models` 目录下文件可使用 [git lfs](https://support.huaweicloud.com/usermanual-codehub/devcloud_hlp_0960.html#devcloud_hlp_0960__section286116283444) 下载
+> `models`
+> 目录下文件可通过
+> [git lfs](https://support.huaweicloud.com/usermanual-codehub/devcloud_hlp_0960.html#devcloud_hlp_0960__section286116283444)
+> 在克隆时一起 或者 直接下载 [releases](ttps://github.com/richard-xx/DepthAI_Yolo/releases/tag/v0.1.0) 中文件
 
 ### 导出模型
 
@@ -41,9 +45,9 @@
 ## 用法
 
 1. 安装依赖
-   ```python
-   python3 -m pip install -r requirements.txt
-   ```
+    ```shell
+    python3 -m pip install -r requirements.txt
+    ```
 2. 运行脚本
     ```shell
     python3 main_sdk.py -m <model_name> -c <config_json>
