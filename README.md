@@ -17,7 +17,7 @@
 > `models`
 > 目录下文件可通过
 > [git lfs](https://support.huaweicloud.com/usermanual-codehub/devcloud_hlp_0960.html#devcloud_hlp_0960__section286116283444)
-> 在克隆时一起 或者 直接下载 [releases](ttps://github.com/richard-xx/DepthAI_Yolo/releases/tag/v0.1.0) 中文件
+> 在克隆时一起 或者 直接下载 [releases](https://github.com/richard-xx/DepthAI_Yolo/releases/tag/v0.1.0) 中文件
 
 ### 导出模型
 
