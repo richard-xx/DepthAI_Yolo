@@ -44,8 +44,7 @@ parser.add_argument(
     "--fullFov",
     help="If to :code:`False`, "
     "it will first center crop the frame to meet the NN aspect ratio and then scale down the image",
-    default=True,
-    type=bool,
+    default="True",
 )
 parser.add_argument(
     "--syncNN",
@@ -53,7 +52,17 @@ parser.add_argument(
     action="store_true",
     default=False,
 )
+parser.add_argument(
+    "--high_res",
+    help="Show synced frame",
+    action="store_true",
+    default=False,
+)
 args = parser.parse_args()
+if args.fullFov.upper() in ["TRUE", "ON"]:
+    args.fullFov = True
+elif args.fullFov.upper() in ["FALSE", "OFF"]:
+    args.fullFov = False
 print("args: {}".format(args))
 
 if args.spatial:
@@ -363,10 +372,6 @@ def create_pipeline():
         stereo.setExtendedDisparity(extended)
         stereo.setSubpixel(subpixel)
         stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
-        if args.syncNN:
-            stereo.setOutputSize(*camRgb.getPreviewSize())
-        else:
-            stereo.setOutputSize(*camRgb.getVideoSize())
         monoLeft.out.link(stereo.left)
         monoRight.out.link(stereo.right)
 
@@ -409,8 +414,10 @@ def create_pipeline():
     camRgb.preview.link(detectionNetwork.input)
     if args.syncNN:
         detectionNetwork.passthrough.link(xoutRgb.input)
-    else:
+    elif args.high_res:
         camRgb.video.link(xoutRgb.input)
+    else:
+        camRgb.preview.link(xoutRgb.input)
     detectionNetwork.out.link(nnOut.input)
 
     return pipeline
@@ -492,7 +499,9 @@ def main():
             # Show the frame
             cv2.imshow(
                 name,
-                frame if args.syncNN else cv2.resize(frame, (0, 0), fx=0.5, fy=0.5),
+                frame
+                if not args.high_res
+                else cv2.resize(frame, (0, 0), fx=0.5, fy=0.5),
             )
 
         while True:
