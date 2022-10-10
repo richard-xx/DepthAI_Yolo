@@ -138,7 +138,7 @@ with dai.Device(pm.pipeline, getDeviceInfo()) as device:
         if inNn is not None:
             nnData = nm.decode(inNn)
             # count FPS
-            fpsHandler.tick("color")
+            fpsHandler.tick("nn")
 
         nm.draw(pv, nnData)
         pv.showFrames()
