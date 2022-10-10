@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# coding=utf-8
 from depthai_sdk import Previews, FPSHandler, getDeviceInfo
 from depthai_sdk.managers import (
     PipelineManager,
@@ -37,7 +39,7 @@ parser.add_argument(
     "-F",
     "--fullFov",
     help="If to :code:`False`, "
-         "it will first center crop the frame to meet the NN aspect ratio and then scale down the image",
+    "it will first center crop the frame to meet the NN aspect ratio and then scale down the image",
     default=True,
     type=bool,
 )
@@ -101,8 +103,7 @@ if args.spatial:
     )
 # create preview manager
 fpsHandler = FPSHandler()
-pv = PreviewManager(display=[Previews.color.name],
-                    fpsHandler=fpsHandler)
+pv = PreviewManager(display=[Previews.color.name], fpsHandler=fpsHandler)
 
 # create NN with managers
 nn = nm.createNN(
