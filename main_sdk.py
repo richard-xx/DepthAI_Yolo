@@ -124,6 +124,9 @@ pm.addNn(nn)
 
 # initialize pipeline
 with dai.Device(pm.pipeline, getDeviceInfo()) as device:
+    if args.spatial and device.getIrDrivers():
+        device.setIrLaserDotProjectorBrightness(200)  # in mA, 0..1200
+        device.setIrFloodLightBrightness(0)  # in mA, 0..1500
     # create outputs
     pv.createQueues(device)
     nm.createQueues(device)

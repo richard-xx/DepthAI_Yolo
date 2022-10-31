@@ -426,6 +426,9 @@ def create_pipeline():
 def main():
     # Connect to device and start pipeline
     with dai.Device(create_pipeline(), getDeviceInfo()) as device:
+        if args.spatial and device.getIrDrivers():
+            device.setIrLaserDotProjectorBrightness(200) # in mA, 0..1200
+            device.setIrFloodLightBrightness(0) # in mA, 0..1500
         # Output queues will be used to get the rgb frames and nn data from the outputs defined above
         qRgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
         qDet = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
