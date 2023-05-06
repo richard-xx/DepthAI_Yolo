@@ -5,32 +5,34 @@ The code is edited from docs (https://docs.luxonis.com/projects/api/en/latest/sa
 We add parsing from JSON files that contain configuration
 """
 
+import argparse
 import collections
+import time
 from pathlib import Path
-import sys
+
+import blobconverter
 import cv2
 import depthai as dai
 import numpy as np
-import time
-import argparse
+
 import json
-import blobconverter
 
 # parse arguments
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument(
     "-m",
     "--model",
+    required=True,
     help="Provide model name or model path for inference",
-    default="yolov4_tiny_coco_416x416",
-    type=str,
+    # default="yolov4_tiny_coco_416x416",
+    type=Path,
 )
 parser.add_argument(
     "-c",
     "--config",
     help="Provide config path for inference",
-    default="json/yolov4-tiny.json",
-    type=str,
+    # default="json/yolov4-tiny.json",
+    type=Path,
 )
 parser.add_argument(
     "-s",
@@ -58,61 +60,81 @@ parser.add_argument(
     action="store_true",
     default=False,
 )
+parser.add_argument(
+    "--classes",
+    nargs='+', 
+    type=int, 
+    help='filter by class: --classes 0, or --classes 0 2 3'
+)
 args = parser.parse_args()
 if args.fullFov.upper() in ["TRUE", "ON"]:
     args.fullFov = True
 elif args.fullFov.upper() in ["FALSE", "OFF"]:
     args.fullFov = False
-print("args: {}".format(args))
 
-if args.spatial:
-    lr = True  # Better handling for occlusions
-    extended = False  # Closer-in minimum depth, disparity range is doubled
-    subpixel = (
-        False  # Better accuracy for longer distance, fractional disparity 32-levels
-    )
-
-# parse config
-configPath = Path(args.config)
-if not configPath.exists():
-    raise ValueError("Path {} does not exist!".format(configPath))
-
-with configPath.open() as f:
-    config = json.load(f)
-nnConfig = config.get("nn_config", {})
-
-# parse input shape
-if "input_size" in nnConfig:
-    W, H = tuple(map(int, nnConfig.get("input_size").split("x")))
-
-# extract metadata
-metadata = nnConfig.get("NN_specific_metadata", {})
-classes = metadata.get("classes", {})
-coordinates = metadata.get("coordinates", {})
-anchors = metadata.get("anchors", {})
-anchorMasks = metadata.get("anchor_masks", {})
-iouThreshold = metadata.get("iou_threshold", {})
-confidenceThreshold = metadata.get("confidence_threshold", {})
-
-print("config: {}".format(metadata))
-
-# parse labels
-nnMappings = config.get("mappings", {})
-labels = nnMappings.get("labels", {})
+numClasses = 80
 
 # get model path
-nnPath = args.model
-if not Path(nnPath).exists():
+nnPath = args.model.resolve().absolute()
+if not nnPath.is_file():
     print("No blob found at {}. Looking into DepthAI model zoo.".format(nnPath))
-    nnPath = str(
-        blobconverter.from_zoo(
-            args.model,
+    nnPath = blobconverter.from_zoo(
+            nnPath.stem,
             shaves=6,
             zoo_type="depthai",
             use_cache=True,
             output_dir="models",
         )
-    )
+args.model = nnPath
+
+model = dai.OpenVINO.Blob(args.model)
+dim = next(iter(model.networkInputs.values())).dims
+nnWidth, nnHeight = dim[:2]
+print(f"{nnWidth, nnHeight = }")
+
+output_name, output_tenser = next(iter(model.networkOutputs.items()))
+if "yolov6" in output_name:
+    numClasses = output_tenser.dims[2] - 5
+else:
+    numClasses = output_tenser.dims[2] // 3 - 5
+
+# parse config
+if args.config is None or not args.config.exists():
+    configPath = nnPath.resolve().absolute().with_suffix(".json")
+else:
+    configPath = args.config.resolve().absolute()
+
+assert configPath.exists(), ValueError("Path {} does not exist!".format(configPath))
+
+args.config = configPath
+print("args: {}".format(args))
+
+
+if args.spatial:
+    # Better handling for occlusions
+    lr = True
+    # Closer-in minimum depth, disparity range is doubled
+    extended = False
+    # Better accuracy for longer distance, fractional disparity 32-levels
+    subpixel = False
+
+with configPath.open() as f:
+    config = json.load(f)
+nnConfig = config.get("nn_config", {})
+
+# extract metadata
+metadata = nnConfig.get("NN_specific_metadata", {})
+coordinates = metadata.get("coordinates", 4)
+anchors = metadata.get("anchors", [])
+anchorMasks = metadata.get("anchor_masks", {})
+iouThreshold = metadata.get("iou_threshold", 0.5)
+confidenceThreshold = metadata.get("confidence_threshold", 0.5)
+
+print("config: {}".format(metadata))
+
+# parse labels
+nnMappings = config.get("mappings", {})
+labels = nnMappings.get("labels", [])
 
 
 class FPSHandler:
@@ -216,78 +238,26 @@ class FPSHandler:
         """
         frameFps = f"{name.upper()} FPS: {round(self.tickFps(name), 1)}"
         # cv2.rectangle(frame, (0, 0), (120, 35), (255, 255, 255), cv2.FILLED)
-        cv2.putText(
-            frame,
-            frameFps,
-            (5, 15),
-            self._fpsType,
-            0.5,
-            self._fpsBgColor,
-            4,
-            self._fpsLineType,
-        )
-        cv2.putText(
-            frame,
-            frameFps,
-            (5, 15),
-            self._fpsType,
-            0.5,
-            self._fpsColor,
-            1,
-            self._fpsLineType,
-        )
+        cv2.putText(frame, frameFps, (5, 15), self._fpsType, 0.5, self._fpsBgColor, 4, self._fpsLineType, )
+        cv2.putText(frame, frameFps, (5, 15), self._fpsType, 0.5, self._fpsColor, 1, self._fpsLineType, )
 
         if "nn" in self._ticks:
             cv2.putText(
-                frame,
-                f"NN FPS:  {round(self.tickFps('nn'), 1)}",
-                (5, 30),
-                self._fpsType,
-                0.5,
-                self._fpsBgColor,
-                4,
-                self._fpsLineType,
-            )
+                frame, f"NN FPS:  {round(self.tickFps('nn'), 1)}", (5, 30), self._fpsType, 0.5,
+                self._fpsBgColor, 4, self._fpsLineType, )
             cv2.putText(
-                frame,
-                f"NN FPS:  {round(self.tickFps('nn'), 1)}",
-                (5, 30),
-                self._fpsType,
-                0.5,
-                self._fpsColor,
-                1,
-                self._fpsLineType,
-            )
+                frame, f"NN FPS:  {round(self.tickFps('nn'), 1)}", (5, 30), self._fpsType, 0.5,
+                self._fpsColor, 1, self._fpsLineType, )
 
 
 def drawText(
-    frame,
-    text,
-    org,
-    color=(255, 255, 255),
-    bg_color=(128, 128, 128),
-    fontScale=0.5,
-    thickness=1,
+    frame, text, org, color=(255, 255, 255), bg_color=(128, 128, 128), fontScale=0.5, thickness=1,
 ):
     cv2.putText(
-        frame,
-        text,
-        org,
-        cv2.FONT_HERSHEY_SIMPLEX,
-        fontScale,
-        bg_color,
-        thickness + 3,
-        cv2.LINE_AA,
+        frame, text, org, cv2.FONT_HERSHEY_SIMPLEX, fontScale, bg_color, thickness + 3, cv2.LINE_AA
     )
     cv2.putText(
-        frame,
-        text,
-        org,
-        cv2.FONT_HERSHEY_SIMPLEX,
-        fontScale,
-        color,
-        thickness,
-        cv2.LINE_AA,
+        frame, text, org, cv2.FONT_HERSHEY_SIMPLEX, fontScale, color, thickness, cv2.LINE_AA
     )
 
 
@@ -298,49 +268,63 @@ def drawRect(
     cv2.rectangle(frame, pt1=p1, pt2=p2, color=color, thickness=thickness)
 
 
-def getDeviceInfo(deviceId=None, debug=False) -> dai.DeviceInfo:
+def getDeviceInfo(deviceId=None, debug=False, poe=True) -> dai.DeviceInfo:
     """
-    Find a correct :obj:`depthai.DeviceInfo` object, either matching provided :code:`deviceId` or selected by the user (if multiple devices available)
-    Useful for almost every app where there is a possibility of multiple devices being connected simultaneously
+    Find the DeviceInfo object of a DepthAI device. This function can be used to retrieve the DeviceInfo of a specific
+    device, or if multiple devices are connected, the user will be prompted to select one.
 
     Args:
-        deviceId (str, optional): Specifies device MX ID, for which the device info will be collected
+        deviceId: str, optional
+            The unique ID of the DepthAI device to retrieve. If not specified, the user will be prompted to select one.
+        debug: bool, optional
+            If True, the function will attempt to connect to all available DepthAI devices.
+        poe: bool, optional
+            If True, only devices connected via Power over Ethernet will be considered.
 
     Returns:
-        depthai.DeviceInfo: Object representing selected device info
+        dai.DeviceInfo
+            The DeviceInfo object of the selected DepthAI device.
 
     Raises:
-        RuntimeError: if no DepthAI device was found or, if :code:`deviceId` was specified, no device with matching MX ID was found
-        ValueError: if value supplied by the user when choosing the DepthAI device was incorrect
+        RuntimeError: if no DepthAI device is found.
+        RuntimeError: if no DepthAI device is found with a matching ID.
+        ValueError: if an incorrect value is supplied when prompted to select a device.
     """
     deviceInfos = []
     if debug:
+        # Get all connected devices in debug mode
         deviceInfos = dai.XLinkConnection.getAllConnectedDevices()
     else:
+        # Get all available devices in normal mode
         deviceInfos = dai.Device.getAllAvailableDevices()
 
+    # Filter devices based on Power over Ethernet (PoE) connection
+    if not poe:
+        deviceInfos = [deviceInfo for deviceInfo in deviceInfos if
+                       deviceInfo.protocol != dai.XLinkProtocol.X_LINK_TCP_IP]
+
+    # If no devices are found, raise an error
     if len(deviceInfos) == 0:
         raise RuntimeError("No DepthAI device found!")
     else:
+        # Print the available devices
         print("Available devices:")
         for i, deviceInfo in enumerate(deviceInfos):
-            print(
-                f"[{i}] {deviceInfo.name} {deviceInfo.getMxId()} [{deviceInfo.state.name}]"
-            )
+            print(f"[{i}] {deviceInfo.name} {deviceInfo.getMxId()} [{deviceInfo.state.name}]")
 
+        # If the user specifies to list the devices, exit the program
         if deviceId == "list":
             raise SystemExit(0)
+        # If the user specifies a device ID, return the matching DeviceInfo object
         elif deviceId is not None:
-            matchingDevice = next(
-                filter(lambda info: info.getMxId() == deviceId, deviceInfos), None
-            )
+            matchingDevice = next(filter(lambda info: info.getMxId() == deviceId, deviceInfos), None)
             if matchingDevice is None:
-                raise RuntimeError(
-                    f"No DepthAI device found with id matching {deviceId} !"
-                )
+                raise RuntimeError(f"No DepthAI device found with id matching {deviceId} !")
             return matchingDevice
+        # If only one device is available, return its DeviceInfo object
         elif len(deviceInfos) == 1:
             return deviceInfos[0]
+        # If multiple devices are available, prompt the user to select one and return its DeviceInfo object
         else:
             val = input("Which DepthAI Device you want to use: ")
             try:
@@ -348,8 +332,14 @@ def getDeviceInfo(deviceId=None, debug=False) -> dai.DeviceInfo:
             except:
                 raise ValueError("Incorrect value supplied: {}".format(val))
 
-
 def create_pipeline():
+    """
+    Create a DepthAI pipeline for object detection using YOLO.
+
+    Returns:
+        dai.Pipeline
+            The DepthAI pipeline object.
+    """
     # Create pipeline
     pipeline = dai.Pipeline()
 
@@ -378,8 +368,8 @@ def create_pipeline():
         detectionNetwork = pipeline.create(dai.node.YoloSpatialDetectionNetwork)
 
         stereo.depth.link(detectionNetwork.inputDepth)
-        detectionNetwork.setDepthLowerThreshold(100)
-        detectionNetwork.setDepthUpperThreshold(10000)
+        detectionNetwork.setDepthLowerThreshold(100)  # mm
+        detectionNetwork.setDepthUpperThreshold(10_000) # mm
         detectionNetwork.setBoundingBoxScaleFactor(0.3)
     else:
         detectionNetwork = pipeline.create(dai.node.YoloDetectionNetwork)
@@ -390,7 +380,7 @@ def create_pipeline():
     nnOut.setStreamName("nn")
 
     # Properties
-    camRgb.setPreviewSize(W, H)
+    camRgb.setPreviewSize(nnWidth, nnHeight)
 
     camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
     camRgb.setInterleaved(False)
@@ -400,12 +390,12 @@ def create_pipeline():
 
     # Network specific settings
     detectionNetwork.setConfidenceThreshold(confidenceThreshold)
-    detectionNetwork.setNumClasses(classes)
+    detectionNetwork.setNumClasses(numClasses)
     detectionNetwork.setCoordinateSize(coordinates)
     detectionNetwork.setAnchors(anchors)
     detectionNetwork.setAnchorMasks(anchorMasks)
     detectionNetwork.setIouThreshold(iouThreshold)
-    detectionNetwork.setBlobPath(nnPath)
+    detectionNetwork.setBlob(model)
     # detectionNetwork.setNumInferenceThreads(2)
     detectionNetwork.input.setBlocking(False)
     detectionNetwork.input.setQueueSize(1)
@@ -422,7 +412,6 @@ def create_pipeline():
 
     return pipeline
 
-
 def main():
     # Connect to device and start pipeline
     with dai.Device(create_pipeline(), getDeviceInfo()) as device:
@@ -430,24 +419,17 @@ def main():
             device.setIrLaserDotProjectorBrightness(200) # in mA, 0..1200
             device.setIrFloodLightBrightness(0) # in mA, 0..1500
         # Output queues will be used to get the rgb frames and nn data from the outputs defined above
-        qRgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
-        qDet = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
+        imageQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+        detectQueue = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
 
         frame = None
         detections = []
-        bboxColors = (
-            np.random.random(size=(256, 3)) * 256
-        )  # Random Colors for bounding boxes
+        # Random Colors for bounding boxes
+        bboxColors:list[list[int]] = np.random.randint(256, size=(numClasses, 3), dtype=int).tolist()
         fpsHandler = FPSHandler()
 
         # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
-        def frameNorm(frame, bbox, NN_SIZE=None):
-            if NN_SIZE is not None:
-                # Check difference in aspect ratio and apply correction to BBs
-                ar_diff = NN_SIZE[0] / NN_SIZE[1] - frame.shape[0] / frame.shape[1]
-                sel = 0 if 0 < ar_diff else 1
-                bbox[sel::2] *= 1 - abs(ar_diff)
-                bbox[sel::2] += abs(ar_diff) / 2
+        def frameNorm(frame, bbox):
             # Normalize bounding boxes
             normVals = np.full(len(bbox), frame.shape[0])
             normVals[::2] = frame.shape[1]
@@ -458,7 +440,6 @@ def main():
                 bbox = frameNorm(
                     frame,
                     (detection.xmin, detection.ymin, detection.xmax, detection.ymax),
-                    None if args.fullFov else [W, H],
                 )
                 drawText(
                     frame,
@@ -468,7 +449,7 @@ def main():
                 )
                 drawText(
                     frame,
-                    f"{int(detection.confidence * 100)}%",
+                    f"{detection.confidence:.2%}",
                     (bbox[0] + 10, bbox[1] + 40),
                     bboxColors[detection.label],
                 )
@@ -478,9 +459,8 @@ def main():
                     (bbox[2], bbox[3]),
                     bboxColors[detection.label],
                 )
-                if hasattr(
-                    detection, "spatialCoordinates"
-                ):  # Display spatial coordinates as well
+                # Display spatial coordinates as well
+                if hasattr(detection, "spatialCoordinates"):
                     xMeters = detection.spatialCoordinates.x / 1000
                     yMeters = detection.spatialCoordinates.y / 1000
                     zMeters = detection.spatialCoordinates.z / 1000
@@ -500,31 +480,39 @@ def main():
                         (bbox[0] + 10, bbox[1] + 90),
                     )
             # Show the frame
-            cv2.imshow(
-                name,
-                frame
-                if not args.high_res
-                else cv2.resize(frame, (0, 0), fx=0.5, fy=0.5),
-            )
+            cv2.imshow(name, frame)
 
         while True:
-            inRgb = qRgb.tryGet()
-            inDet = qDet.tryGet()
+            imageQueueData = imageQueue.tryGet()
+            detectQueueData = detectQueue.tryGet()
 
-            if inRgb is not None:
-                frame = inRgb.getCvFrame()
+            if imageQueueData is not None:
+                frame = imageQueueData.getCvFrame()
                 fpsHandler.tick("color")
 
-            if inDet is not None:
-                detections = inDet.detections
+            if detectQueueData is not None:
+                detections = detectQueueData.detections
+                if args.classes is not None:
+                    detections = [detection for detection in detections if detection.label in args.classes]
+                    
                 fpsHandler.tick("nn")
 
             if frame is not None:
                 fpsHandler.drawFps(frame, "color")
                 displayFrame("rgb", frame, detections)
+                # detections = []
 
-            if cv2.waitKey(1) == ord("q"):
+            key = cv2.waitKey(1)
+
+            if key == ord("q"):
                 break
+            elif key == ord("s"):
+                filename = f"{time.strftime('%Y%m%d_%H%M%S',time.localtime())}.jpg"
+                # for chinese dir
+                cv2.imencode(".jpg", frame)[1].tofile(filename)
+                # cv2.imwrite(filename,frame)
+                print(f"save to: {filename}")
+            
 
 
 if __name__ == "__main__":
