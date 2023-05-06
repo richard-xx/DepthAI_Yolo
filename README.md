@@ -10,14 +10,19 @@
 * `YoloV4` & `YoloV4-tiny`,
 * `YoloV5`,
 * `YoloV6`,
-* `YoloV7`.
+* `YoloV7`,
+* `YoloV8`.
 
-我们在 `main_sdk.py` 和 `main_api.py` 中使用相同样式的 JSON 解析，但您也可以在代码中手动设置这两种情况下的值。
+我们在 `main_sdk_v*.py` 和 `main_api.py` 中使用相同样式的 JSON 解析，但您也可以在代码中手动设置这两种情况下的值。
 
 > `models`
 > 目录下文件可通过
 > [git lfs](https://support.huaweicloud.com/usermanual-codehub/devcloud_hlp_0960.html#devcloud_hlp_0960__section286116283444)
 > 在克隆时一起 或者 直接下载 [releases](https://github.com/richard-xx/DepthAI_Yolo/releases/tag/v0.1.0) 中文件
+>
+>> new ! `2023.05.06`
+>> 
+>> 新版可使用 `download_models.py` 下载模型
 
 ### 导出模型
 
@@ -35,12 +40,18 @@
         * [YoloV5](https://github.com/ultralytics/yolov5),
         * [YoloV6](https://github.com/meituan/YOLOv6),
         * [YoloV7](https://github.com/WongKinYiu/yolov7)
+        * [YoloV8](https://github.com/ultralytics/ultralytics),
+        * [YoloV5_training.ipynb](https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV5_training.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV5_training.ipynb)
+        * [YoloV6_training.ipynb](https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV6_training.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV6_training.ipynb)
+        * [YoloV7_training.ipynb](https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV7_training.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV7_training.ipynb)
+        * [YoloV8_training.ipynb](https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV8_training.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV8_training.ipynb)
     * 导出转换：
-        * 可使用 [https://tools.luxonis.com/](https://tools.luxonis.com/)
+        * [https://tools.luxonis.com/](https://tools.luxonis.com/)
           网页在线转换，
-        * 或参考 [https://github.com/luxonis/tools/tree/master/yolo](https://github.com/luxonis/tools/tree/master/yolo)
+        * 参考 [https://github.com/luxonis/tools/tree/master/yolo](https://github.com/luxonis/tools/tree/master/yolo)
           和 [https://github.com/luxonis/tools/tree/master/yolov7](https://github.com/luxonis/tools/tree/master/yolov7)
           进行本地转换
+        * [OAK 相机如何将 YOLO 系列模型转换成 blob 格式？](https://www.oakchina.cn/tag/yolo/)
 
 ## 用法
 
@@ -54,11 +65,14 @@
     ```
    或者
     ```shell
-    python3 main_api.py -m <model_name> -c <config_json>
+    python3 main_api_v1.2.py -m <model_name> -c <config_json>
+    ```
+   ```shell
+    python3 main_api_v1.9.py -conf <config_json>
     ```
    Tips：
 
-    * `<model_name>` 是来自 DepthAI 模型库 (https：zoo.luxonis.com) 的模型名称或 blob 文件的相对路径。请查看我们的模型库以查看可用的预训练模型。
+    * `<model_name>` 是来自 DepthAI 模型库 (https://zoo.luxonis.com) 的模型名称或 blob 文件的相对路径。请查看我们的模型库以查看可用的预训练模型。
     * `<config_json>` 是带有 Yolo 模型元数据（输入形状、锚点、标签等）的 JSON 的相对路径。
 
 ## JSONs
@@ -84,7 +98,12 @@ python3 main_sdk.py -m <model_name> -c <config_json> --spatial
 或者
 
 ```shell
-python3 main_api.py -m <model_name> -c <config_json> --spatial
+python3 main_api_v1.2.py -m <model_name> -c <config_json> --spatial
+
+```
+
+```shell
+python3 main_api_v1.9.py -conf <config_json> --spatial
 ```
 
 如果您对使用 Yolo 检测器的深度信息感兴趣，

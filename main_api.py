@@ -7,6 +7,7 @@ We add parsing from JSON files that contain configuration
 
 import argparse
 import collections
+import re
 import time
 from pathlib import Path
 
@@ -17,6 +18,37 @@ import numpy as np
 
 import json
 
+ROOT = Path(__file__).parent
+model_dir = ROOT.joinpath("models")
+blobconverter.set_defaults(output_dir=model_dir, version="2022.1")
+
+# https://github.com/luxonis/depthai-model-zoo/tree/main/models
+depthai_model_zoo = [
+    "yolov3_coco_416x416",
+    "yolov4_coco_608x608",
+    "yolov4_tiny_coco_416x416",
+    "yolov5n_coco_416x416",
+    "yolov5n_coco_640x352",
+    "yolov6n_coco_416x416",
+    "yolov6n_coco_640x640",
+    "yolov6nr1_coco_512x288",
+    "yolov6nr1_coco_640x352",
+    "yolov6nr3_coco_416x416",
+    "yolov6nr3_coco_640x352",
+    "yolov6t_coco_416x416",
+    "yolov7_coco_416x416",
+    "yolov7tiny_coco_416x416",
+    "yolov7tiny_coco_640x352",
+    "yolov8n_coco_416x416",
+    "yolov8n_coco_640x352",
+]
+open_model_zoo = [
+    "yolo-v3-tf",
+    "yolo-v3-tiny-tf",
+    "yolo-v4-tf",
+    "yolo-v4-tiny-tf",
+]
+
 # parse arguments
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument(
@@ -24,14 +56,14 @@ parser.add_argument(
     "--model",
     required=True,
     help="Provide model name or model path for inference",
-    # default="yolov4_tiny_coco_416x416",
+    # default="yolov8n_coco_640x352",
     type=Path,
 )
 parser.add_argument(
     "-c",
     "--config",
     help="Provide config path for inference",
-    # default="json/yolov4-tiny.json",
+    # default="json/yolov8n_coco_640x352.json",
     type=Path,
 )
 parser.add_argument(
@@ -45,7 +77,7 @@ parser.add_argument(
     "-F",
     "--fullFov",
     help="If to :code:`False`, "
-    "it will first center crop the frame to meet the NN aspect ratio and then scale down the image",
+         "it will first center crop the frame to meet the NN aspect ratio and then scale down the image",
     default="True",
 )
 parser.add_argument(
@@ -62,8 +94,8 @@ parser.add_argument(
 )
 parser.add_argument(
     "--classes",
-    nargs='+', 
-    type=int, 
+    nargs='+',
+    type=int,
     help='filter by class: --classes 0, or --classes 0 2 3'
 )
 args = parser.parse_args()
@@ -77,14 +109,34 @@ numClasses = 80
 # get model path
 nnPath = args.model.resolve().absolute()
 if not nnPath.is_file():
-    print("No blob found at {}. Looking into DepthAI model zoo.".format(nnPath))
-    nnPath = blobconverter.from_zoo(
-            nnPath.stem,
-            shaves=6,
-            zoo_type="depthai",
-            use_cache=True,
-            output_dir="models",
-        )
+    nnName = nnPath.stem
+
+    if nnName in depthai_model_zoo + open_model_zoo:
+        list_file = list(model_dir.glob(f"{nnName}*.blob"))
+        if list_file:
+            nnPath = list_file[0]
+        else:
+            print(f"Model ({nnName}) not found in local. Looking into DepthAI model zoo.")
+            if nnName in depthai_model_zoo:
+                nnPath = blobconverter.from_zoo(
+                    nnName,
+                    shaves=6,
+                    zoo_type="depthai",
+                    use_cache=True,
+                )
+            elif nnName in open_model_zoo:
+                nnPath = blobconverter.from_zoo(
+                    nnName,
+                    shaves=6,
+                    zoo_type="intel",
+                    use_cache=True,
+                )
+    else:
+        print(f"Model ({nnName}) not found in model zoo. check model is in: ")
+        print(depthai_model_zoo + open_model_zoo)
+        raise FileNotFoundError
+    args.config = ROOT.joinpath("json", f"{nnName}.json")
+
 args.model = nnPath
 
 model = dai.OpenVINO.Blob(args.model)
@@ -101,6 +153,8 @@ else:
 # parse config
 if args.config is None or not args.config.exists():
     configPath = nnPath.resolve().absolute().with_suffix(".json")
+    if not configPath.exists() and re.search("_openvino_(.*?)_(.*?)shave", nnPath.stem):
+        configPath = re.sub("_openvino_(.*?)_(.*?)shave", "", nnPath.stem)
 else:
     configPath = args.config.resolve().absolute()
 
@@ -108,7 +162,6 @@ assert configPath.exists(), ValueError("Path {} does not exist!".format(configPa
 
 args.config = configPath
 print("args: {}".format(args))
-
 
 if args.spatial:
     # Better handling for occlusions
@@ -251,7 +304,7 @@ class FPSHandler:
 
 
 def drawText(
-    frame, text, org, color=(255, 255, 255), bg_color=(128, 128, 128), fontScale=0.5, thickness=1,
+        frame, text, org, color=(255, 255, 255), bg_color=(128, 128, 128), fontScale=0.5, thickness=1,
 ):
     cv2.putText(
         frame, text, org, cv2.FONT_HERSHEY_SIMPLEX, fontScale, bg_color, thickness + 3, cv2.LINE_AA
@@ -262,7 +315,7 @@ def drawText(
 
 
 def drawRect(
-    frame, p1, p2, color=(255, 255, 255), bg_color=(128, 128, 128), thickness=1
+        frame, p1, p2, color=(255, 255, 255), bg_color=(128, 128, 128), thickness=1
 ):
     cv2.rectangle(frame, pt1=p1, pt2=p2, color=bg_color, thickness=thickness + 3)
     cv2.rectangle(frame, pt1=p1, pt2=p2, color=color, thickness=thickness)
@@ -332,6 +385,7 @@ def getDeviceInfo(deviceId=None, debug=False, poe=True) -> dai.DeviceInfo:
             except:
                 raise ValueError("Incorrect value supplied: {}".format(val))
 
+
 def create_pipeline():
     """
     Create a DepthAI pipeline for object detection using YOLO.
@@ -369,7 +423,7 @@ def create_pipeline():
 
         stereo.depth.link(detectionNetwork.inputDepth)
         detectionNetwork.setDepthLowerThreshold(100)  # mm
-        detectionNetwork.setDepthUpperThreshold(10_000) # mm
+        detectionNetwork.setDepthUpperThreshold(10_000)  # mm
         detectionNetwork.setBoundingBoxScaleFactor(0.3)
     else:
         detectionNetwork = pipeline.create(dai.node.YoloDetectionNetwork)
@@ -412,12 +466,13 @@ def create_pipeline():
 
     return pipeline
 
+
 def main():
     # Connect to device and start pipeline
     with dai.Device(create_pipeline(), getDeviceInfo()) as device:
         if args.spatial and device.getIrDrivers():
-            device.setIrLaserDotProjectorBrightness(200) # in mA, 0..1200
-            device.setIrFloodLightBrightness(0) # in mA, 0..1500
+            device.setIrLaserDotProjectorBrightness(200)  # in mA, 0..1200
+            device.setIrFloodLightBrightness(0)  # in mA, 0..1500
         # Output queues will be used to get the rgb frames and nn data from the outputs defined above
         imageQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
         detectQueue = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
@@ -425,7 +480,7 @@ def main():
         frame = None
         detections = []
         # Random Colors for bounding boxes
-        bboxColors:list[list[int]] = np.random.randint(256, size=(numClasses, 3), dtype=int).tolist()
+        bboxColors: list[list[int]] = np.random.randint(256, size=(numClasses, 3), dtype=int).tolist()
         fpsHandler = FPSHandler()
 
         # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
@@ -494,7 +549,7 @@ def main():
                 detections = detectQueueData.detections
                 if args.classes is not None:
                     detections = [detection for detection in detections if detection.label in args.classes]
-                    
+
                 fpsHandler.tick("nn")
 
             if frame is not None:
@@ -507,12 +562,11 @@ def main():
             if key == ord("q"):
                 break
             elif key == ord("s"):
-                filename = f"{time.strftime('%Y%m%d_%H%M%S',time.localtime())}.jpg"
+                filename = f"{time.strftime('%Y%m%d_%H%M%S', time.localtime())}.jpg"
                 # for chinese dir
                 cv2.imencode(".jpg", frame)[1].tofile(filename)
                 # cv2.imwrite(filename,frame)
                 print(f"save to: {filename}")
-            
 
 
 if __name__ == "__main__":

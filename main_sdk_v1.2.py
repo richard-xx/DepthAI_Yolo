@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # coding=utf-8
-from depthai_sdk import Previews, FPSHandler, getDeviceInfo
+import blobconverter
+from depthai_sdk import Previews, getDeviceInfo
+try:
+    from depthai_sdk import FPSHandler
+except ImportError:
+    from depthai_sdk.fps import FPSHandler
+
 from depthai_sdk.managers import (
     PipelineManager,
     PreviewManager,
@@ -12,20 +18,50 @@ import cv2
 import argparse
 from pathlib import Path
 
+ROOT = Path(__file__).parent
+model_dir = ROOT.joinpath("models")
+blobconverter.set_defaults(output_dir=model_dir, version="2022.1")
+
+# https://github.com/luxonis/depthai-model-zoo/tree/main/models
+depthai_model_zoo = [
+    "yolov3_coco_416x416",
+    "yolov4_coco_608x608",
+    "yolov4_tiny_coco_416x416",
+    "yolov5n_coco_416x416",
+    "yolov5n_coco_640x352",
+    "yolov6n_coco_416x416",
+    "yolov6n_coco_640x640",
+    "yolov6nr1_coco_512x288",
+    "yolov6nr1_coco_640x352",
+    "yolov6nr3_coco_416x416",
+    "yolov6nr3_coco_640x352",
+    "yolov6t_coco_416x416",
+    "yolov7_coco_416x416",
+    "yolov7tiny_coco_416x416",
+    "yolov7tiny_coco_640x352",
+    "yolov8n_coco_416x416",
+    "yolov8n_coco_640x352",
+]
+open_model_zoo = [
+    "yolo-v3-tf",
+    "yolo-v3-tiny-tf",
+    "yolo-v4-tf",
+    "yolo-v4-tiny-tf",
+]
 # parse arguments
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument(
     "-m",
     "--model",
     help="Provide model path for inference",
-    default="yolov4_tiny_coco_416x416",
+    default="yolov8n_coco_640x352",
     type=str,
 )
 parser.add_argument(
     "-c",
     "--config",
     help="Provide config path for inference",
-    default="json/yolov4-tiny.json",
+    default="json/yolov8n_coco_640x352.json",
     type=str,
 )
 parser.add_argument(
@@ -43,18 +79,34 @@ parser.add_argument(
     default=True,
     type=bool,
 )
+parser.add_argument(
+    "--classes",
+    nargs='+',
+    type=int,
+    help='filter by class: --classes 0, or --classes 0 2 3'
+)
 args = parser.parse_args()
 CONFIG_PATH = args.config
 
+zooType = "depthai"
 # create blob, NN, and preview managers
 if Path(args.model).exists():
     # initialize blob manager with path to the blob
     bm = BlobManager(blobPath=args.model)
 else:
     # initialize blob manager with the name of the model otherwise
-    bm = BlobManager(zooName=args.model)
+    nnName = Path(args.model).stem
+    if nnName in depthai_model_zoo + open_model_zoo:
+        if nnName in open_model_zoo:
+            zooType = "intel"
+        list_file = list(model_dir.glob(f"{nnName}*.blob"))
+        if list_file:
+            nnPath = list_file[0]
+            bm = BlobManager(blobPath=nnPath)
+        else:
+            bm = BlobManager(zooName=args.model)
 
-nm = NNetManager(nnFamily="YOLO", inputSize=4)
+nm = NNetManager(nnFamily="YOLO", inputSize=(416, 416))
 nm.readConfig(CONFIG_PATH)  # this will also parse the correct input size
 
 pm = PipelineManager()
@@ -110,7 +162,7 @@ nn = nm.createNN(
     pipeline=pm.pipeline,
     nodes=pm.nodes,
     blobPath=bm.getBlob(
-        shaves=6, openvinoVersion=pm.pipeline.getOpenVINOVersion(), zooType="depthai"
+        shaves=6, openvinoVersion=pm.pipeline.getOpenVINOVersion(), zooType=zooType
     ),
     source=Previews.color.name,
     useDepth=args.spatial,
@@ -141,6 +193,8 @@ with dai.Device(pm.pipeline, getDeviceInfo()) as device:
 
         if inNn is not None:
             nnData = nm.decode(inNn)
+            if args.classes is not None:
+                nnData = [detection for detection in nnData if detection.label in args.classes]
             # count FPS
             fpsHandler.tick("nn")
 
