@@ -61,14 +61,14 @@
     ```
 2. 运行脚本
     ```shell
-    python3 main_sdk.py -m <model_name> -c <config_json>
+    python3 main_api.py -m <model_name> -c <config_json>
     ```
    或者
     ```shell
-    python3 main_api_v1.2.py -m <model_name> -c <config_json>
+    python3 main_sdk_v1.2.py -m <model_name> -c <config_json>
     ```
    ```shell
-    python3 main_api_v1.9.py -conf <config_json>
+    python3 main_sdk_v1.9.py -conf <config_json>
     ```
    Tips：
 
@@ -92,18 +92,18 @@
 DepthAI 使您能够利用深度信息并获取检测到的对象的 `x`、`y` 和 `z` 坐标。
 
 ```shell
-python3 main_sdk.py -m <model_name> -c <config_json> --spatial
+python3 main_api.py -m <model_name> -c <config_json> --spatial
 ```
 
 或者
 
 ```shell
-python3 main_api_v1.2.py -m <model_name> -c <config_json> --spatial
+python3 main_sdk_v1.2.py -m <model_name> -c <config_json> --spatial
 
 ```
 
 ```shell
-python3 main_api_v1.9.py -conf <config_json> --spatial
+python3 main_sdk_v1.9.py -conf <config_json> --spatial
 ```
 
 如果您对使用 Yolo 检测器的深度信息感兴趣，
