@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
 # coding=utf-8
+from __future__ import annotations
+
 import blobconverter
 from depthai_sdk import Previews, getDeviceInfo
+
 try:
     from depthai_sdk import FPSHandler
 except ImportError:
     from depthai_sdk.fps import FPSHandler
 
-from depthai_sdk.managers import (
-    PipelineManager,
-    PreviewManager,
-    BlobManager,
-    NNetManager,
-)
-import depthai as dai
-import cv2
 import argparse
 from pathlib import Path
+
+import cv2
+import depthai as dai
+from depthai_sdk.managers import (
+    BlobManager,
+    NNetManager,
+    PipelineManager,
+    PreviewManager,
+)
 
 ROOT = Path(__file__).parent
 model_dir = ROOT.joinpath("models")
@@ -79,35 +83,30 @@ parser.add_argument(
     default=True,
     type=bool,
 )
-parser.add_argument(
-    "--classes",
-    nargs='+',
-    type=int,
-    help='filter by class: --classes 0, or --classes 0 2 3'
-)
+parser.add_argument("--classes", nargs="+", type=int, help="filter by class: --classes 0, or --classes 0 2 3")
 args = parser.parse_args()
-CONFIG_PATH = args.config
+config_path = args.config
 
-zooType = "depthai"
+zoo_type = "depthai"
 # create blob, NN, and preview managers
 if Path(args.model).exists():
     # initialize blob manager with path to the blob
     bm = BlobManager(blobPath=args.model)
 else:
     # initialize blob manager with the name of the model otherwise
-    nnName = Path(args.model).stem
-    if nnName in depthai_model_zoo + open_model_zoo:
-        if nnName in open_model_zoo:
-            zooType = "intel"
-        list_file = list(model_dir.glob(f"{nnName}*.blob"))
+    nn_name = Path(args.model).stem
+    if nn_name in depthai_model_zoo + open_model_zoo:
+        if nn_name in open_model_zoo:
+            zoo_type = "intel"
+        list_file = list(model_dir.glob(f"{nn_name}*.blob"))
         if list_file:
-            nnPath = list_file[0]
-            bm = BlobManager(blobPath=nnPath)
+            nn_path = list_file[0]
+            bm = BlobManager(blobPath=nn_path)
         else:
             bm = BlobManager(zooName=args.model)
 
 nm = NNetManager(nnFamily="YOLO", inputSize=(416, 416))
-nm.readConfig(CONFIG_PATH)  # this will also parse the correct input size
+nm.readConfig(config_path)  # this will also parse the correct input size
 
 pm = PipelineManager()
 pm.createColorCam(
@@ -154,16 +153,14 @@ if args.spatial:
         control=False,
     )
 # create preview manager
-fpsHandler = FPSHandler()
-pv = PreviewManager(display=[Previews.color.name], fpsHandler=fpsHandler)
+fps_handler = FPSHandler()
+pv = PreviewManager(display=[Previews.color.name], fpsHandler=fps_handler)
 
 # create NN with managers
 nn = nm.createNN(
     pipeline=pm.pipeline,
     nodes=pm.nodes,
-    blobPath=bm.getBlob(
-        shaves=6, openvinoVersion=pm.pipeline.getOpenVINOVersion(), zooType=zooType
-    ),
+    blobPath=bm.getBlob(shaves=6, openvinoVersion=pm.pipeline.getOpenVINOVersion(), zooType=zoo_type),
     source=Previews.color.name,
     useDepth=args.spatial,
     minDepth=100,
@@ -183,22 +180,21 @@ with dai.Device(pm.pipeline, getDeviceInfo()) as device:
     pv.createQueues(device)
     nm.createQueues(device)
 
-    nnData = []
+    nn_data = []
 
     while True:
-
         # parse outputs
         pv.prepareFrames()
-        inNn = nm.outputQueue.tryGet()
+        in_nn = nm.outputQueue.tryGet()
 
-        if inNn is not None:
-            nnData = nm.decode(inNn)
+        if in_nn is not None:
+            nn_data = nm.decode(in_nn)
             if args.classes is not None:
-                nnData = [detection for detection in nnData if detection.label in args.classes]
+                nn_data = [detection for detection in nn_data if detection.label in args.classes]
             # count FPS
-            fpsHandler.tick("nn")
+            fps_handler.tick("nn")
 
-        nm.draw(pv, nnData)
+        nm.draw(pv, nn_data)
         pv.showFrames()
 
         if cv2.waitKey(1) == ord("q"):

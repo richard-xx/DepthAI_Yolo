@@ -1,4 +1,6 @@
 # coding=utf-8
+from __future__ import annotations
+
 from pathlib import Path
 
 import blobconverter
@@ -32,20 +34,18 @@ open_model_zoo = [
     "yolo-v4-tf",
     "yolo-v4-tiny-tf",
 ]
-for nnName in depthai_model_zoo + open_model_zoo:
-    if nnName in depthai_model_zoo:
-        nnPath = blobconverter.from_zoo(
-            nnName,
+for nn_name in depthai_model_zoo + open_model_zoo:
+    if nn_name in depthai_model_zoo:
+        nn_path = blobconverter.from_zoo(
+            nn_name,
             shaves=6,
             zoo_type="depthai",
             use_cache=True,
         )
-    elif nnName in open_model_zoo:
-        nnPath = blobconverter.from_zoo(
-            nnName,
+    elif nn_name in open_model_zoo:
+        nn_path = blobconverter.from_zoo(
+            nn_name,
             shaves=6,
             zoo_type="intel",
             use_cache=True,
         )
-
-
