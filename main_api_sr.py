@@ -463,7 +463,7 @@ def draw_rect(frame, p1, p2, color=(255, 255, 255), bg_color=(128, 128, 128), th
     cv2.rectangle(frame, pt1=p1, pt2=p2, color=color, thickness=thickness)
 
 
-def get_device_info(device_id=None, debug=False, poe=True) -> dai.DeviceInfo:
+def get_device_info(device_id: str | None = None, debug: bool = False, poe: bool = True):
     device_infos = dai.XLinkConnection.getAllConnectedDevices() if debug else dai.Device.getAllAvailableDevices()
 
     # Filter devices based on Power over Ethernet (PoE) connection
@@ -482,9 +482,10 @@ def get_device_info(device_id=None, debug=False, poe=True) -> dai.DeviceInfo:
     for i, device_info in enumerate(device_infos):
         print(f"[{i}] {device_info.name} {device_info.getMxId()} [{device_info.state.name}]")
 
-    # If the user specifies to list the devices, exit the program
+    # If the user specifies to list the devices, return the list of available devices
     if device_id == "list":
-        raise SystemExit(0)
+        return list(device_infos)
+
     # If the user specifies a device ID, return the matching DeviceInfo object
     if device_id is not None:
         matching_device = next(filter(lambda info: info.getMxId() == device_id, device_infos), None)
@@ -492,9 +493,11 @@ def get_device_info(device_id=None, debug=False, poe=True) -> dai.DeviceInfo:
             msg = f"No DepthAI device found with id matching {device_id} !"
             raise RuntimeError(msg)
         return matching_device
+
     # If only one device is available, return its DeviceInfo object
     if len(device_infos) == 1:
         return device_infos[0]
+
     # If multiple devices are available, prompt the user to select one and return its DeviceInfo object
     val = input("Which DepthAI Device you want to use: ")
     if val not in [str(i) for i in range(len(device_infos))]:
@@ -533,8 +536,8 @@ def create_pipeline_color():
         detection_network.setDepthUpperThreshold(10_000)  # mm
         detection_network.setBoundingBoxScaleFactor(0.3)
 
-        mono_left.out.link(stereo.left)
-        mono_right.out.link(stereo.right)
+        mono_left.isp.link(stereo.left)
+        mono_right.isp.link(stereo.right)
         stereo.depth.link(detection_network.inputDepth)
     else:
         detection_network = pipeline.create(dai.node.YoloDetectionNetwork)
