@@ -199,7 +199,7 @@ def main():
         frame = None
         detections = []
         # Random Colors for bounding boxes
-        bbox_colors = np.random.default_rng().integers(256, size=(num_classes, 3), dtype=int)
+        bbox_colors = np.random.default_rng().integers(256, size=(num_classes, 3), dtype=int).tolist()
         fps_handler = FPSHandler()
 
         # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
