@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling","hatch-requirements-txt"]
 build-backend = "hatchling.build"
 
 [project]
@@ -13,13 +13,6 @@ maintainers = [
 ]
 description = "YOLOs object detection example using DepthAI"
 requires-python = ">= 3.7"
-dependencies = [
-    "depthai>=2.26.0.0",
-    "blobconverter>=1.4.3",
-    "opencv-python",
-    "typer>=0.12.3",
-    "pydantic>2",
-]
 license = { text = "MIT License" }
 readme = "README.md"
 keywords = ["depthai", "yolo", "object detection"]
@@ -34,15 +27,12 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+dynamic = ["dependencies", "optional-dependencies"]
 
 [project.urls]
 Repository = "https://github.com/richard-xx/DepthAI_Yolo.git"
 "Bug Tracker" = "https://github.com/richard-xx/DepthAI_Yolo/issues"
 
-[project.optional-dependencies]
-sdk = [
-    "depthai-sdk>=1.2.0, !=1.9.0",
-]
 
 [project.scripts]
 depthai_yolo = "depthai_yolo.cli:app"
@@ -68,3 +58,9 @@ exclude = [
 [tool.hatch.build.targets.wheel]
 packages = ["src/depthai_yolo"]
 sources = { "src/depthai_yolo" = "depthai_yolo" }
+
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements/requirements.in"]
+[tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
+sdk = ["requirements/requirements-sdk.in"]

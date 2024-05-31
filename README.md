@@ -11,7 +11,9 @@
 * `YoloV5`,
 * `YoloV6`,
 * `YoloV7`,
-* `YoloV8`.
+* `YoloV8`,
+* `YoloV9`,
+* `YoloV10` 。
 
 我们在 `main_sdk_v*.py` 和 `main_api.py` 中使用相同样式的 JSON 解析，但您也可以在代码中手动设置这两种情况下的值。
 
@@ -59,22 +61,26 @@
     ```shell
     python3 -m pip install -r requirements.txt
     ```
+    >  若使用 **`SDK`** 请运行
+    > ```shell
+    > python3 -m pip install -r requirements-sdk.txt
+    > ```
 2. 运行脚本
     ```shell
-    python3 main_api.py -m model_name -c config_json
+    python3 src/depthai_yolo/cli.py api -m model_name -c config_json
     ```
     >  若使用 **`OAK_D_SR`** 请运行
     > ```shell
-    >   python3 main_api_sr.py -m model_name -c config_json
+    >   python3 src/depthai_yolo/cli.py sr -m model_name -c config_json
     > ```
     >
 
    或者
     ```shell
-    python3 main_sdk_v1.2.py -m model_name -c config_json
+    python3 src/depthai_yolo/main_sdk_v1.2.py -m model_name -c config_json
     ```
     ```shell
-    python3 main_sdk_v1.9.py -conf config_json
+    python3 src/depthai_yolo/main_sdk_v1.9.py -conf config_json
     ```
    Tips：
 
@@ -98,7 +104,7 @@
 DepthAI 使您能够利用深度信息并获取检测到的对象的 `x`、`y` 和 `z` 坐标。
 
 ```shell
-python3 main_api.py -m model_name -c config_json --spatial
+python3 src/depthai_yolo/cli.py api -m model_name -c config_json --spatial
 ```
 
 或者

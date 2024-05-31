@@ -1,0 +1,5 @@
+depthai>=2.25.1.0
+blobconverter>=1.4.3
+opencv-python
+typer>=0.12.3
+pydantic>2
