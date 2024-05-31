@@ -8,9 +8,9 @@ import blobconverter
 import cv2
 import depthai as dai
 import numpy as np
-from download_models import download
-from nn_config import Config
-from yolo_define_models import depthai_model_zoo, open_model_zoo
+from depthai_yolo.download_models import download
+from depthai_yolo.nn_config import Config
+from depthai_yolo.yolo_define_models import depthai_model_zoo, open_model_zoo
 
 ROOT = Path(__file__).parent
 # model_dir = ROOT.joinpath("models")

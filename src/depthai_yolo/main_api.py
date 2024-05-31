@@ -5,7 +5,7 @@ import time
 import cv2
 import depthai as dai
 import numpy as np
-from utils import FPSHandler, display_frame, get_device_info
+from depthai_yolo.utils import FPSHandler, display_frame, get_device_info
 
 
 def main(pipeline, **kwargs):

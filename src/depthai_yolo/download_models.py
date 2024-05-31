@@ -2,8 +2,8 @@
 import blobconverter
 import click
 import typer
+from depthai_yolo.yolo_define_models import depthai_model_zoo, open_model_zoo
 from typing_extensions import Annotated
-from yolo_define_models import depthai_model_zoo, open_model_zoo
 
 app = typer.Typer()
 
