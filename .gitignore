@@ -1,0 +1,17 @@
+.idea/
+__pycache__/
+build/
+dist/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.cache
+.pytest_cache/
+.venv
+venv/
+venv.bak/
+.mypy_cache
+src/depthai_yolo/models/*.blob
+src/depthai_yolo/models/*.json
