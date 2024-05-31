@@ -1,0 +1,70 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "depthai_yolo"
+version = "0.1.0"
+authors = [
+    { name = "Luxonis", email = "support@luxonis.com" },
+]
+maintainers = [
+    { name = "Richard", email = "richard@arducam.com" },
+]
+description = "YOLOs object detection example using DepthAI"
+requires-python = ">= 3.7"
+dependencies = [
+    "depthai>=2.26.0.0",
+    "blobconverter>=1.4.3",
+    "opencv-python",
+    "typer>=0.12.3",
+    "pydantic>2",
+]
+license = { text = "MIT License" }
+readme = "README.md"
+keywords = ["depthai", "yolo", "object detection"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Repository = "https://github.com/richard-xx/DepthAI_Yolo.git"
+"Bug Tracker" = "https://github.com/richard-xx/DepthAI_Yolo/issues"
+
+[project.optional-dependencies]
+sdk = [
+    "depthai-sdk>=1.2.0, !=1.9.0",
+]
+
+[project.scripts]
+depthai_yolo = "depthai_yolo.cli:app"
+depthai_yolo_download = "depthai_yolo.download_models:app"
+
+[tool.rye]
+dev-dependencies = [
+    "setuptools>=70.0.0",
+    "pip>=24.0",
+    "wheel>=0.43.0",
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "test",
+    "docs",
+    "examples",
+    "tools",
+    "*.lock",
+
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/depthai_yolo"]
+sources = { "src/depthai_yolo" = "depthai_yolo" }
