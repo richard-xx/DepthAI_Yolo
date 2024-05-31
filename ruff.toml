@@ -1,0 +1,184 @@
+# 根据 schema 提供自动补全
+# "$schema" = 'https://raw.githubusercontent.com/astral-sh/ruff/main/ruff.schema.json'
+preview = true
+
+
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+# Default value: ["ALL"]
+#fixable = [
+#    "A", "C", "D", "E", "F", "G",
+#    "I", "N", "Q", "S", "T", "W",
+#    "ANN", "ARG", "BLE", "COM", "DJ",
+#    "DTZ", "EM", "ERA", "EXE", "FBT",
+#    "ICN", "INP", "ISC", "NPY", "PD",
+#    "PGH", "PIE", "PL", "PT", "PTH",
+#    "PYI", "RET", "RSE", "RUF", "SIM",
+#    "SLF", "TCH", "TID", "TRY", "UP",
+#    "YTT",
+#]
+# Avoid trying to fix flake8-bugbear (`B`) violations.
+# unfixable = ["B"]
+
+# Allow Ruff to discover `*.ipynb` files.
+include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+# Same as Black.
+line-length = 120
+
+
+# Assume Python 3.7.
+# Always generate Python 3.7-compatible code.
+target-version = "py38"
+
+# Enumerate all fixed violations.
+show-fixes = true
+
+# [isort]
+# required-imports = ["from __future__ import annotations"]
+
+[lint]
+# Default value: ["E", "F"]
+select = [
+    "A", # flake8-builtins
+    # "ANN", # flake8-annotations
+    "ASYNC", # flake8-async
+    "B", # flake8-bugbear
+    "C90", # mccabe
+    "C4", # flake8-comprehensions
+    "COM", # flake8-commas
+    "D", # pydocstyle
+    "DTZ", # flake8-datetimez
+    "E", # pycodestyle
+    "EM", # flake8-errmsg
+    "F", # pyflakes
+    "FA", # flake8-future-annotations
+    "FBT", # flake8-boolean-trap
+    "FLY", # flynt
+    "FURB", # refurb
+    "G", # flake8-logging-format
+    "I", # isort
+    "ICN", # flake8-import-conventions
+    "ISC", # flake8-implicit-str-concat
+    "LOG", # flake8-loggingflake8-logging
+    "N", # pep8-naming
+    "NPY", # NumPy-specific rules
+    "PERF", # Perflint
+    "PIE", # flake8-pie
+    "PTH", # flake8-use-pathlib
+    "PL", # Pylint
+    "Q", # flake8-quotes
+    "RET", # flake8-return
+    "RSE", # flake8-raise
+    "RUF", # Ruff-specific rules
+    "SIM", # flake8-simplify
+    "SLOT", # flake8-slots
+    "TID", # flake8-tidy-imports
+    "TCH", # flake8-type-checking
+    "TRY", # tryceratops
+    "UP", # pyupgrade
+    "W", # pycodestyle
+]
+extend-select= [
+    "C90"
+]
+# Never enforce `E501` (line length violations).
+ignore = [
+    "B905", # zip-without-explicit-strict
+    "COM812", # Trailing comma missing
+    "D100", # Missing docstring in public module
+    "D101", # docstring in public class
+    "D102", # docstring in public method
+    "D103", # docstring in public function
+    "D104", # docstring in public package
+    "D105", # docstring in magic method
+    "D106", # docstring in public nested class
+    "D107", # Missing docstring in __init__
+
+    # One of these is to be disabled..
+    # (I prefer disabling D212 (Multi-line docstring summary should start at the first line)
+    #  because I like text inside a docstring
+    #  to start the line below the three """)
+    #"D213", # See https://github.com/charliermarsh/ruff/issues/2281
+    "D212", # See https://github.com/charliermarsh/ruff/issues/2281
+
+    # One of these is to be disabled.
+    # No strong preference here.
+    # One expects a blank line before a class docstring
+    "D203", # See https://github.com/charliermarsh/ruff/issues/2281
+    #"D211", # See https://github.com/charliermarsh/ruff/issues/2281
+
+    "D415", # First line should end with a period, question mark, or exclamation point
+    "D417", # Checks for function docstrings that do not include documentation for all parameters in the function.
+    "E501", # Line too long ({width} > {limit} characters)
+    "FA100",
+    "ISC001", # Implicitly concatenated string literals on one line
+    "UP009", # utf8-encoding-declaration
+    "RUF001", # ambiguous-unicode-character-string
+    "RUF002", # ambiguous-unicode-character-docstring
+    "RUF003", # ambiguous-unicode-character-comment
+    "N806", # Variable {name} in function should be lowercase
+    "N803", # Variable {name} in class should be lowercase
+    "FA102"
+]
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+per-file-ignores = { }
+
+[lint.mccabe]
+# Flag errors (`C901`) whenever the complexity level exceeds 5.
+max-complexity = 10
+
+[lint.flake8-quotes]
+docstring-quotes = "double"
+
+[lint.pydocstyle]
+convention = "google"
+ignore-decorators = ["typing.overload"]
+
+[lint.pylint]
+max-args = 10
+
+[lint.flake8-tidy-imports]
+# Default value: "parents"
+# Disallow all relative imports.
+#ban-relative-imports = "all"
+ban-relative-imports = "parents"
+
+[format]
+indent-style = "space"
+# Enable preview style formatting.
+preview = true
+# Prefer double quotes over single quotes.
+quote-style = "double"
+
+
+[lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+runtime-evaluated-decorators = ["attrs.define", "attrs.frozen"]
