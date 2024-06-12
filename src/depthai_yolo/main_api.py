@@ -5,10 +5,11 @@ import time
 import cv2
 import depthai as dai
 import numpy as np
+
 from depthai_yolo.utils import FPSHandler, display_frame, get_device_info
 
 
-def main(pipeline, **kwargs):
+def main(pipeline_func, **kwargs):
     classes = kwargs.get("classes", [])
 
     config_data = kwargs["config_data"]
@@ -16,7 +17,7 @@ def main(pipeline, **kwargs):
 
     # Connect to a device and start pipeline
     with dai.Device(
-        pipeline,
+        pipeline_func(**kwargs),
         get_device_info(),
         maxUsbSpeed=kwargs.get("usbSpeed"),
     ) as device:

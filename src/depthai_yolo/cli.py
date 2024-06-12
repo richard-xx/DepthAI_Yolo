@@ -4,12 +4,13 @@ from typing import List, Optional
 
 import click
 import typer
+from typing_extensions import Annotated
+
 from depthai_yolo.depthai_enums import color_res_opts, mono_res_opts, usb_speed_opts
 from depthai_yolo.main_api import main
 from depthai_yolo.pipelines.common import create_pipeline as create_pipeline_main
 from depthai_yolo.pipelines.sr import create_pipeline as create_pipeline_sr
 from depthai_yolo.utils import parse_yolo_model
-from typing_extensions import Annotated
 
 app = typer.Typer()
 
@@ -175,7 +176,7 @@ def run(  # noqa: PLR0913
         create_pipeline = create_pipeline_sr
 
     main(
-        create_pipeline(),
+        create_pipeline,
         classes=classes,
         usbSpeed=usbSpeed,
         color_res=color_res,
