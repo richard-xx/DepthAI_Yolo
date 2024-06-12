@@ -51,6 +51,7 @@ source = "regex_commit"
 path = "src/depthai_yolo/__init__.py"
 commit_message = "🚀 Bump version {current_version} → {new_version}"
 tag_message = "🔖 New version {new_version}"
+tag_sign = false
 
 [tool.hatch.build.targets.sdist]
 exclude = [
