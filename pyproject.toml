@@ -67,6 +67,3 @@ sources = { "src/depthai_yolo" = "depthai_yolo" }
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["requirements/requirements.in"]
-
-[tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
-sdk = ["requirements/requirements-sdk.in"]
