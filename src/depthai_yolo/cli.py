@@ -1,4 +1,5 @@
 # coding=utf-8
+import sys
 from pathlib import Path
 from typing import List, Optional
 
@@ -11,8 +12,17 @@ from depthai_yolo.main_api import main
 from depthai_yolo.pipelines.common import create_pipeline as create_pipeline_main
 from depthai_yolo.pipelines.sr import create_pipeline as create_pipeline_sr
 from depthai_yolo.utils import parse_yolo_model
+from depthai_yolo.yolo_define_models import all_model_zoo
 
 app = typer.Typer()
+
+
+def print_defined_models() -> None:
+    print("Defined models:")
+    for model in all_model_zoo:
+        print(f"\t- {model}")
+
+    sys.exit(0)
 
 
 @app.command()
@@ -96,6 +106,7 @@ def run(  # noqa: PLR0913
             ...,
             "-s",
             "--spatial/--no_spatial",
+            is_flag=True,
             help="Display spatial information",
         ),
     ] = False,
@@ -105,6 +116,7 @@ def run(  # noqa: PLR0913
             ...,
             "-lr",
             "--lr_check/--no_lr_check",
+            is_flag=True,
             help="If to True, it will perform left-right check on stereo pair, only for `spatial is True`",
         ),
     ] = True,
@@ -114,6 +126,7 @@ def run(  # noqa: PLR0913
             ...,
             "-extended",
             "--extended_disparity/--no_extended",
+            is_flag=True,
             help="If to True, it will enable disparity, only for `spatial is True`",
         ),
     ] = False,
@@ -123,6 +136,7 @@ def run(  # noqa: PLR0913
             ...,
             "-sub",
             "--subpixel/--no_subpixel",
+            is_flag=True,
             help="If to True, it will enable subpixel disparity, only for `spatial is True`",
         ),
     ] = False,
@@ -132,16 +146,17 @@ def run(  # noqa: PLR0913
             ...,
             "-F",
             "--fullFov/--no_fullFov",
+            is_flag=True,
             help="If to False, it will first center crop the frame to meet the NN aspect ratio and then scale down the image",
         ),
     ] = True,
     syncNN: Annotated[
         bool,
-        typer.Option(..., "-syncNN", "--syncNN/--no_syncNN", help="Show synced frame"),
+        typer.Option(..., "-syncNN", "--syncNN/--no_syncNN", is_flag=True, help="Show synced frame"),
     ] = False,
     high_res: Annotated[
         bool,
-        typer.Option(..., "-high", "--high_res/--no_high_res", help="Show synced frame"),
+        typer.Option(..., "-high", "--high_res/--no_high_res", is_flag=True, help="Show synced frame"),
     ] = False,
     color: Annotated[
         bool,
@@ -149,7 +164,21 @@ def run(  # noqa: PLR0913
             ...,
             "-color",
             "--color/--no_color",
+            is_flag=True,
             help="Show lens as color, only for `sr` ",
+        ),
+    ] = False,
+    list_models: Annotated[
+        bool,
+        typer.Option(
+            ...,
+            "-list",
+            "-ls",
+            "--list_models",
+            is_eager=True,
+            is_flag=True,
+            callback=print_defined_models,
+            help="List all pre-defined models",
         ),
     ] = False,
 ):

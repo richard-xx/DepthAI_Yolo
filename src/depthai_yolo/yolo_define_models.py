@@ -26,3 +26,5 @@ open_model_zoo = [
     "yolo-v4-tf",
     "yolo-v4-tiny-tf",
 ]
+
+all_model_zoo = depthai_model_zoo + open_model_zoo
