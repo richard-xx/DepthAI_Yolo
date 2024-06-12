@@ -1,10 +1,9 @@
 [build-system]
-requires = ["hatchling", "hatch-requirements-txt"]
+requires = ["hatchling", "hatch-requirements-txt", "hatch-regex-commit"]
 build-backend = "hatchling.build"
 
 [project]
 name = "depthai_yolo"
-version = "0.1.0"
 authors = [
     { name = "Luxonis", email = "support@luxonis.com" },
 ]
@@ -27,7 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dynamic = ["dependencies", "optional-dependencies"]
+dynamic = ["version", "dependencies", "optional-dependencies"]
 
 [project.urls]
 Repository = "https://github.com/richard-xx/DepthAI_Yolo.git"
@@ -43,8 +42,15 @@ dev-dependencies = [
     "setuptools>=70.0.0",
     "pip>=24.0",
     "wheel>=0.43.0",
-    "build"
+    "build",
+    "hatch>=1.12.0",
 ]
+
+[tool.hatch.version]
+source = "regex_commit"
+path = "src/depthai_yolo/__init__.py"
+commit_message = "🚀 Bump version {current_version} → {new_version}"
+tag_message = "🔖 New version {new_version}"
 
 [tool.hatch.build.targets.sdist]
 exclude = [
@@ -59,8 +65,8 @@ exclude = [
 packages = ["src/depthai_yolo"]
 sources = { "src/depthai_yolo" = "depthai_yolo" }
 
-
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["requirements/requirements.in"]
+
 [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
 sdk = ["requirements/requirements-sdk.in"]
