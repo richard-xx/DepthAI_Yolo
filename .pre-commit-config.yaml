@@ -5,12 +5,11 @@ repos:
     rev: v4.6.0
     hooks:
       - id: trailing-whitespace
-        args: [--markdown-linebreak-ext=md]
+        args: [ --markdown-linebreak-ext=md ]
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
-        exclude: ^models/
       - id: check-case-conflict
       - id: mixed-line-ending
 
@@ -29,10 +28,12 @@ repos:
       # Run the pip compile
       - id: pip-compile
         name: pip-compile requirements.in
-        args: [ requirements/requirements.in, -o, requirements.txt ]
+        args: [ pyproject.toml, -o, requirements.txt ]
+        files: requirements/requirements.in
       - id: pip-compile
         name: pip-compile requirements-sdk.in
-        args: [ requirements/requirements-sdk.in, -o, requirements-sdk.txt ]
+        args: [ pyproject.toml, --extra, sdk,-o, requirements-sdk.txt ]
+        files: requirements/requirements-sdk.in
 
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.16.0
@@ -40,4 +41,4 @@ repos:
       - id: commitlint
         stages: [ commit-msg ]
         additional_dependencies:
-            - 'commitlint-config-gitmoji'
+          - 'commitlint-config-gitmoji'
