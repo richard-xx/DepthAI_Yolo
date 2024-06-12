@@ -17,6 +17,8 @@ depthai_model_zoo = [
     "yolov7_coco_416x416",
     "yolov7tiny_coco_416x416",
     "yolov7tiny_coco_640x352",
+    "yolov7tiny_waldo_288x512",
+    "yolov7tiny_waldo_416x768",
     "yolov8n_coco_416x416",
     "yolov8n_coco_640x352",
 ]
