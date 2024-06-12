@@ -17,15 +17,6 @@
 
 我们在 `main_sdk_v*.py` 和 `main_api.py` 中使用相同样式的 JSON 解析，但您也可以在代码中手动设置这两种情况下的值。
 
-> `models`
-> 目录下文件可通过
-> [git lfs](https://support.huaweicloud.com/usermanual-codehub/devcloud_hlp_0960.html#devcloud_hlp_0960__section286116283444)
-> 在克隆时一起 或者 直接下载 [releases](https://github.com/richard-xx/DepthAI_Yolo/releases/tag/v0.1.0) 中文件
->
->> new ! `2023.05.06`
->>
->> 新版可使用 `download_models.py` 下载模型
-
 ### 导出模型
 
 由于模型必须以某种方式导出转换到 OpenVINO IR，我们提供了关于训练和导出的教程：
@@ -57,23 +48,60 @@
 
 ## 用法
 
+### 用法 1: 模块安装
+
+1. 安装
+    ```shell
+    python3 -m pip install .
+    ```
+2. 运行
+   > 可以使用 `download_models` 下载全部预定义模型
+   > ```shell
+    > python3 -m depthai_yolo.download_models
+    > # 或
+    > python3 -m depthai_yolo --download
+    > # 或
+    > depthai_yolo --download
+    > ```
+
+    ```shell
+    python3 -m depthai_yolo api -m model_name -c config_json
+    # 或
+    depthai_yolo api -m model_name -c config_json
+    ```
+   > 若使用 **`OAK_D_SR`** 请运行
+   >    ```shell
+    >    python3 -m depthai_yolo sr -m model_name -c config_json
+    >    # 或
+    >    depthai_yolo sr -m model_name -c config_json
+    >    ```
+
+### 用法 2: 源码运行
+
 1. 安装依赖
     ```shell
     python3 -m pip install -r requirements.txt
     ```
-    >  若使用 **`SDK`** 请运行
-    > ```shell
+   > 若使用 **`SDK`** 请运行
+   > ```shell
     > python3 -m pip install -r requirements-sdk.txt
     > ```
 2. 运行脚本
-    ```shell
-    python3 src/depthai_yolo/cli.py api -m model_name -c config_json
-    ```
-    >  若使用 **`OAK_D_SR`** 请运行
+    > 可以使用 `download_models.py` 脚本下载预定义模型
     > ```shell
-    >   python3 src/depthai_yolo/cli.py sr -m model_name -c config_json
+    > python3 -m src/depthai_yolo/download_models.py
+    > # 或
+    > python3 run.py --download
     > ```
-    >
+
+    ```shell
+    python3 run.py api -m model_name -c config_json
+    ```
+   > 若使用 **`OAK_D_SR`** 请运行
+   > ```shell
+    >   python3 run.py sr -m model_name -c config_json
+    > ```
+   >
 
    或者
     ```shell
@@ -82,10 +110,12 @@
     ```shell
     python3 src/depthai_yolo/main_sdk_v1.9.py -conf config_json
     ```
-   Tips：
 
-    * `model_name` 是来自 DepthAI 模型库 (https://zoo.luxonis.com) 的模型名称或 blob 文件的相对路径。请查看我们的模型库以查看可用的预训练模型。
-    * `config_json` 是带有 Yolo 模型元数据（输入形状、锚点、标签等）的 JSON 的相对路径。
+> **注意**：
+>
+> * `model_name` 是来自 DepthAI 模型库 (https://zoo.luxonis.com) 的模型名称或 blob 文件的相对路径。
+    请查看我们的模型库以查看可用的预训练模型，或使用 `-ls/--list_models` 参数查看可用模型。
+> * `config_json` 是带有 Yolo 模型元数据（输入形状、锚点、标签等）的 JSON 的相对路径。
 
 ## JSONs
 
@@ -104,7 +134,7 @@
 DepthAI 使您能够利用深度信息并获取检测到的对象的 `x`、`y` 和 `z` 坐标。
 
 ```shell
-python3 src/depthai_yolo/cli.py api -m model_name -c config_json --spatial
+python3 run.py api -m model_name -c config_json --spatial
 ```
 
 或者
