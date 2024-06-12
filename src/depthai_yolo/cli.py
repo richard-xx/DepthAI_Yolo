@@ -1,5 +1,4 @@
 # coding=utf-8
-import sys
 from pathlib import Path
 from typing import List, Optional
 
@@ -8,6 +7,7 @@ import typer
 from typing_extensions import Annotated
 
 from depthai_yolo.depthai_enums import color_res_opts, mono_res_opts, usb_speed_opts
+from depthai_yolo.download_models import download_models
 from depthai_yolo.main_api import main
 from depthai_yolo.pipelines.common import create_pipeline as create_pipeline_main
 from depthai_yolo.pipelines.sr import create_pipeline as create_pipeline_sr
@@ -17,12 +17,21 @@ from depthai_yolo.yolo_define_models import all_model_zoo
 app = typer.Typer()
 
 
-def print_defined_models() -> None:
+def print_defined_models(ctx, param, value) -> None:
+    if not value or ctx.resilient_parsing:
+        return
     print("Defined models:")
     for model in all_model_zoo:
-        print(f"\t- {model}")
+        typer.echo(f"\t- {model}")
 
-    sys.exit(0)
+    ctx.exit()
+
+
+def download_defined_models(ctx, param, value) -> None:
+    if not value or ctx.resilient_parsing:
+        return
+    download_models("all")
+    ctx.exit()
 
 
 @app.command()
@@ -179,6 +188,18 @@ def run(  # noqa: PLR0913
             is_flag=True,
             callback=print_defined_models,
             help="List all pre-defined models",
+        ),
+    ] = False,
+    download: Annotated[
+        bool,
+        typer.Option(
+            ...,
+            "-d",
+            "--download",
+            is_flag=True,
+            is_eager=True,
+            callback=download_defined_models,
+            help="Download all pre-defined models",
         ),
     ] = False,
 ):
