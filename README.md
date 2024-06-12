@@ -103,12 +103,17 @@
     > ```
    >
 
-   或者
+### 用法 3: SDK (不推荐)
+1. 安装依赖
     ```shell
-    python3 src/depthai_yolo/main_sdk_v1.2.py -m model_name -c config_json
+    python3 -m pip install -r sdk_scripts/requirements-sdk.txt
+    ```
+2. 运行脚本
+    ```shell
+    python3 sdk_scripts/main_sdk_v1.2.py -m model_name -c config_json
     ```
     ```shell
-    python3 src/depthai_yolo/main_sdk_v1.9.py -conf config_json
+    python3 sdk_scripts/main_sdk_v1.9.py -conf config_json
     ```
 
 > **注意**：

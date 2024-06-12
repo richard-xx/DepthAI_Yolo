@@ -30,10 +30,6 @@ repos:
         name: pip-compile requirements.in
         args: [ pyproject.toml, -o, requirements.txt ]
         files: requirements/requirements.in
-      - id: pip-compile
-        name: pip-compile requirements-sdk.in
-        args: [ pyproject.toml, --extra, sdk,-o, requirements-sdk.txt ]
-        files: requirements/requirements-sdk.in
 
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.16.0
