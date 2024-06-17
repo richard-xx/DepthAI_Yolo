@@ -1,8 +1,10 @@
 # coding=utf-8
+from enum import Enum
 from pathlib import Path
 from typing import List, Optional
 
 import click
+import depthai as dai
 import typer
 from typing_extensions import Annotated
 
@@ -10,11 +12,19 @@ from depthai_yolo.depthai_enums import color_res_opts, mono_res_opts, usb_speed_
 from depthai_yolo.download_models import download_models
 from depthai_yolo.main_api import main
 from depthai_yolo.pipelines.common import create_pipeline as create_pipeline_main
+from depthai_yolo.pipelines.lr import StereoPair
+from depthai_yolo.pipelines.lr import create_pipeline as create_pipeline_lr
 from depthai_yolo.pipelines.sr import create_pipeline as create_pipeline_sr
 from depthai_yolo.utils import parse_yolo_model
 from depthai_yolo.yolo_define_models import all_model_zoo
 
 app = typer.Typer()
+
+
+class APP(str, Enum):
+    OAK_D = "oak"
+    OAK_LR = "lr"
+    OAK_SR = "sr"
 
 
 def print_defined_models(ctx, param, value) -> None:
@@ -34,15 +44,15 @@ def download_defined_models(ctx, param, value) -> None:
     ctx.exit()
 
 
-@app.command()
+@app.command(name="depthai_yolo")
 def run(  # noqa: PLR0913
     app: Annotated[
-        str,
+        APP,
         typer.Argument(
             ...,
             help="Provide app name for inference",
         ),
-    ] = "api",
+    ] = APP.OAK_D,
     model_file: Annotated[
         Path,
         typer.Option(
@@ -92,7 +102,7 @@ def run(  # noqa: PLR0913
         typer.Option(
             ...,
             click_type=click.Choice(color_res_opts, case_sensitive=False),
-            help="Color camera resolution",
+            help="Color camera resolution, if using OAK-LR, must be selected from `THE_720_P/THE_400_P` (zoom from THE_1200_P).",
         ),
     ] = "THE_1080_P",
     mono_res: Annotated[
@@ -108,13 +118,21 @@ def run(  # noqa: PLR0913
             help="Set capture FPS for all cameras.",
         ),
     ] = 30,
+    stereo_pair: Annotated[
+        StereoPair,
+        typer.Option(
+            ...,
+            "--stereo_pair",
+            help="Stereo pair, current only for OAK-LR.",
+        ),
+    ] = StereoPair.LR,
     *,
     spatial: Annotated[
         bool,
         typer.Option(
             ...,
             "-s",
-            "--spatial/--no_spatial",
+            "--spatial",
             is_flag=True,
             help="Display spatial information",
         ),
@@ -124,7 +142,7 @@ def run(  # noqa: PLR0913
         typer.Option(
             ...,
             "-lr",
-            "--lr_check/--no_lr_check",
+            "--lr_check",
             is_flag=True,
             help="If to True, it will perform left-right check on stereo pair, only for `spatial is True`",
         ),
@@ -133,8 +151,8 @@ def run(  # noqa: PLR0913
         bool,
         typer.Option(
             ...,
-            "-extended",
-            "--extended_disparity/--no_extended",
+            "-e",
+            "--extended_disparity",
             is_flag=True,
             help="If to True, it will enable disparity, only for `spatial is True`",
         ),
@@ -144,7 +162,7 @@ def run(  # noqa: PLR0913
         typer.Option(
             ...,
             "-sub",
-            "--subpixel/--no_subpixel",
+            "--subpixel",
             is_flag=True,
             help="If to True, it will enable subpixel disparity, only for `spatial is True`",
         ),
@@ -154,7 +172,7 @@ def run(  # noqa: PLR0913
         typer.Option(
             ...,
             "-F",
-            "--fullFov/--no_fullFov",
+            "--full_fov/--no_full_fov",
             is_flag=True,
             help="If to False, it will first center crop the frame to meet the NN aspect ratio and then scale down the image",
         ),
@@ -203,7 +221,16 @@ def run(  # noqa: PLR0913
         ),
     ] = False,
 ):
+    isp_scale = (2, 3)  # only for lr app
     color_res = color_res_opts.get(color_res)
+
+    if app == "lr":
+        if color_res == "THE_720_P":
+            isp_scale = (2, 3)
+        if color_res == "THE_400_P":
+            isp_scale = (1, 3)
+        color_res = dai.ColorCameraProperties.SensorResolution.THE_1200_P
+
     mono_res = mono_res_opts.get(mono_res)
     usbSpeed = usb_speed_opts.get(usbSpeed)
 
@@ -225,6 +252,9 @@ def run(  # noqa: PLR0913
     elif app == "sr":
         create_pipeline = create_pipeline_sr
 
+    elif app == "lr":
+        create_pipeline = create_pipeline_lr
+
     main(
         create_pipeline,
         classes=classes,
@@ -242,6 +272,8 @@ def run(  # noqa: PLR0913
         config_data=config_data,
         model_data=model_data,
         color=color,
+        isp_scale=isp_scale,
+        stereo_pair=stereo_pair,
     )
 
 
