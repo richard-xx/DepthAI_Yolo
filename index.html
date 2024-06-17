@@ -1,0 +1,797 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://richard-xx.github.io/depthai_yolo/">
+      
+      
+      
+        <link rel="next" href="oak-d/">
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.27">
+    
+    
+      
+        <title>Depthai Yolo</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.6543a935.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#基于设备上解码的-yolo-检测" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="Depthai Yolo" class="md-header__button md-logo" aria-label="Depthai Yolo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Depthai Yolo
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/richard-xx/depthai_yolo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    richard-xx/depthai_yolo
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="Depthai Yolo" class="md-nav__button md-logo" aria-label="Depthai Yolo" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Depthai Yolo
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/richard-xx/depthai_yolo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    richard-xx/depthai_yolo
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#导出模型" class="md-nav__link">
+    <span class="md-ellipsis">
+      导出模型
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#用法" class="md-nav__link">
+    <span class="md-ellipsis">
+      用法
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="用法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#depthai_yolo" class="md-nav__link">
+    <span class="md-ellipsis">
+      depthai_yolo
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#用法-1-模块安装" class="md-nav__link">
+    <span class="md-ellipsis">
+      用法 1: 模块安装
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://richard-xx.github.io/oak_custom_doc/oak/pointcloud/point_cloud_viewer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Oak Custom Docs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Yolo
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Yolo
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="oak-d/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    OAK D
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="sr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    OAK SR
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    OAK LR
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#导出模型" class="md-nav__link">
+    <span class="md-ellipsis">
+      导出模型
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#用法" class="md-nav__link">
+    <span class="md-ellipsis">
+      用法
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="用法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#depthai_yolo" class="md-nav__link">
+    <span class="md-ellipsis">
+      depthai_yolo
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#用法-1-模块安装" class="md-nav__link">
+    <span class="md-ellipsis">
+      用法 1: 模块安装
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="基于设备上解码的-yolo-检测">基于设备上解码的 Yolo 检测<a class="headerlink" href="#基于设备上解码的-yolo-检测" title="Permanent link">&para;</a></h1>
+<p><img alt="Yolo-on-device" src="https://user-images.githubusercontent.com/56075061/144863222-a52be87e-b1f0-4a0a-b39b-f865bbb6e4a4.png" /></p>
+<p>该<a href="https://github.com/richard-xx/DepthAI_Yolo">存储库</a> (
+修改自 <a href="https://github.com/luxonis/depthai-experiments/tree/master/gen2-yolo/device-decoding">device-decoding</a>)
+包含直接使用 DepthAI SDK (<code>main_sdk.py</code>) 或 DepthAI API (<code>main_api.py</code>) 在设备上解码运行 Yolo 目标检测的代码。目前，支持的版本有：</p>
+<ul>
+<li><code>YoloV3</code> &amp; <code>YoloV3-tiny</code>,</li>
+<li><code>YoloV4</code> &amp; <code>YoloV4-tiny</code>,</li>
+<li><code>YoloV5</code>,</li>
+<li><code>YoloV6</code>,</li>
+<li><code>YoloV7</code>,</li>
+<li><code>YoloV8</code>,</li>
+<li><code>YoloV9</code>,</li>
+<li><code>YoloV10</code> 。</li>
+</ul>
+<p>我们在 <code>main_sdk_v*.py(不推荐)</code> 和 <code>main_api.py</code> 中使用相同样式的 JSON 解析，但您也可以在代码中手动设置这两种情况下的值。</p>
+<h3 id="导出模型">导出模型<a class="headerlink" href="#导出模型" title="Permanent link">&para;</a></h3>
+<p>由于模型必须以某种方式导出转换到 OpenVINO IR，我们提供了关于训练和导出的教程：</p>
+<ul>
+<li>
+<p><code>YoloV3</code>, <code>YoloV4</code>, 和它们的 <code>tiny</code> 版本：</p>
+<ul>
+<li>训练：<ul>
+<li><a href="https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV3_V4_tiny_training.ipynb">YoloV3_V4_tiny_training.ipynb</a> <a href="https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV3_V4_tiny_training.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></li>
+<li><a href="https://github.com/AlexeyAB/darknet">https://github.com/AlexeyAB/darknet</a></li>
+</ul>
+</li>
+<li>导出转换：<ul>
+<li><a href="https://github.com/luxonis/yolo2openvino">https://github.com/luxonis/yolo2openvino</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><code>YoloV5</code>, <code>YoloV6</code>, 和 <code>YoloV7</code> ：</p>
+<ul>
+<li>训练可参考原始仓库：<ul>
+<li><a href="https://github.com/ultralytics/yolov5">YoloV5</a>,</li>
+<li><a href="https://github.com/meituan/YOLOv6">YoloV6</a>,</li>
+<li><a href="https://github.com/WongKinYiu/yolov7">YoloV7</a></li>
+<li><a href="https://github.com/ultralytics/ultralytics">YoloV8</a>,</li>
+<li><a href="https://github.com/WongKinYiu/yolov9">YoloV9</a>, <a href="https://github.com/ultralytics/ultralytics">YoloV9_ultralytics</a>,</li>
+<li><a href="https://github.com/THU-MIG/yolov10">YoloV10</a>,</li>
+<li><a href="https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV5_training.ipynb">YoloV5_training.ipynb</a> <a href="https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV5_training.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></li>
+<li><a href="https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV6_training.ipynb">YoloV6_training.ipynb</a> <a href="https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV6_training.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></li>
+<li><a href="https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV7_training.ipynb">YoloV7_training.ipynb</a> <a href="https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV7_training.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></li>
+<li><a href="https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV8_training.ipynb">YoloV8_training.ipynb</a> <a href="https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV8_training.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></li>
+</ul>
+</li>
+<li>导出转换：<ul>
+<li><a href="https://tools.luxonis.com/">https://tools.luxonis.com/</a>
+  网页在线转换，</li>
+<li>参考 <a href="https://github.com/luxonis/tools/tree/master/yolo">https://github.com/luxonis/tools/tree/master/yolo</a>
+  和 <a href="https://github.com/luxonis/tools/tree/master/yolov7">https://github.com/luxonis/tools/tree/master/yolov7</a>
+  进行本地转换</li>
+<li><a href="https://www.oakchina.cn/tag/yolo/">OAK 相机如何将 YOLO 系列模型转换成 blob 格式？</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="用法">用法<a class="headerlink" href="#用法" title="Permanent link">&para;</a></h2>
+<h5 id="depthai_yolo">depthai_yolo<a class="headerlink" href="#depthai_yolo" title="Permanent link">&para;</a></h5>
+<p>Usage:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>depthai_yolo [OPTIONS] [APP]:[oak|lr|sr]
+</span></code></pre></div>
+<p>Options:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>  [APP]:[oak|lr|sr]               Provide app name for inference  [default:
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>                                  oak]
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  -m, -w, --model, --weight PATH  Provide model name or model path for
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>                                  inference  [required]
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  -c, -j, --config, --json PATH   Provide config path for inference
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  -classes_id, --classes_id INTEGER
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>                                  filter by class: --classes 0 or --classes 0
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>                                  2 3
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  -classes_str, --classes_str TEXT
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>                                  filter by class: --classes person or
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>                                  --classes person cup
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  -usbs, --usbSpeed [UNKNOWN|LOW|FULL|HIGH|SUPER|SUPER_PLUS]
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>                                  Force USB communication speed.  [default:
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>                                  SUPER_PLUS]
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>  --color-res [THE_1080_P|THE_1200_P|THE_4_K|THE_5_MP|THE_12_MP|THE_4000X3000|THE_13_MP|THE_5312X6000|THE_48_MP|THE_720_P|THE_800_P|THE_1440X1080|THE_1352X1012|THE_2024X1520]
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>                                  Color camera resolution, if using OAK-LR,
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>                                  must be selected from `THE_720_P/THE_400_P`
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>                                  (zoom from THE_1200_P).  [default:
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>                                  THE_1080_P]
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>  --mono-res [THE_720_P|THE_800_P|THE_400_P|THE_480_P|THE_1200_P]
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>                                  Mono camera resolution  [default: THE_400_P]
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>  -fps, --fps FLOAT               Set capture FPS for all cameras.  [default:
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>                                  30]
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>  --stereo_pair [LR|LC|CR]        Stereo pair, current only for OAK-LR.
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>                                  [default: LR]
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>  -s, --spatial                   Display spatial information
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>  -lr, --lr_check                 If to True, it will perform left-right check
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>                                  on stereo pair, only for `spatial is True`
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>                                  [default: True]
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>  -e, --extended_disparity        If to True, it will enable disparity, only
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>                                  for `spatial is True`
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>  -sub, --subpixel                If to True, it will enable subpixel
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>                                  disparity, only for `spatial is True`
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>  -F, --full_fov / --no_full_fov  If to False, it will first center crop the
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>                                  frame to meet the NN aspect ratio and then
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>                                  scale down the image  [default: F]
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>  -syncNN, --syncNN / --no_syncNN
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>                                  Show synced frame  [default: no_syncNN]
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>  -high, --high_res / --no_high_res
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>                                  Show synced frame  [default: no_high_res]
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>  -color, --color / --no_color    Show lens as color, only for `sr`
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>                                  [default: no_color]
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>  -list, -ls, --list_models       List all pre-defined models
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>  -d, --download                  Download all pre-defined models
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>  --install-completion            Install completion for the current shell.
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>  --show-completion               Show completion for the current shell, to
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>                                  copy it or customize the installation.
+</span></code></pre></div>
+<h3 id="用法-1-模块安装">用法 1: 模块安装<a class="headerlink" href="#用法-1-模块安装" title="Permanent link">&para;</a></h3>
+<ol>
+<li>安装
+    <div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+</span></code></pre></div></li>
+<li>
+<p>运行</p>
+<blockquote>
+<p>可以使用 <code>download_models</code> 下载全部预定义模型
+<code>shell
+    &gt; python3 -m depthai_yolo.download_models
+    &gt; # 或
+    &gt; python3 -m depthai_yolo --download
+    &gt; # 或
+    &gt; depthai_yolo --download
+    &gt;</code></p>
+</blockquote>
+<p>```shell
+python3 -m depthai_yolo oak -m model_name -c config_json</p>
+<h1 id="或">或<a class="headerlink" href="#或" title="Permanent link">&para;</a></h1>
+<p>depthai_yolo api -m model_name -c config_json
+```</p>
+<blockquote>
+<p>若使用 <strong><code>OAK_D_SR</code></strong> 请运行
+   <code>shell
+   python3 -m depthai_yolo sr -m model_name -c config_json
+   # 或
+   depthai_yolo sr -m model_name -c config_json</code>
+若使用 <strong><code>OAK_D_LR</code></strong> 请运行
+   <code>shell
+   python3 -m depthai_yolo lr -m model_name -c config_json
+   # 或
+   depthai_yolo lr -m model_name -c config_json</code></p>
+</blockquote>
+</li>
+</ol>
+<h3 id="用法-2-源码运行">用法 2: 源码运行<a class="headerlink" href="#用法-2-源码运行" title="Permanent link">&para;</a></h3>
+<ol>
+<li>安装依赖
+    <div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</span></code></pre></div><blockquote>
+<p>若使用 <strong><code>SDK</code></strong> 请运行
+<code>shell
+    &gt; python3 -m pip install -r requirements-sdk.txt
+    &gt;</code></p>
+</blockquote>
+</li>
+<li>
+<p>运行脚本
+    &gt; 可以使用 <code>download_models.py</code> 脚本下载预定义模型
+    &gt; <div class="language-shell highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>src/depthai_yolo/download_models.py
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># 或</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>python3<span class="w"> </span>run.py<span class="w"> </span>--download
+</span></code></pre></div></p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python3<span class="w"> </span>run.py<span class="w"> </span>oak<span class="w"> </span>-m<span class="w"> </span>model_name<span class="w"> </span>-c<span class="w"> </span>config_json
+</span></code></pre></div>
+<blockquote>
+<p>若使用 <strong><code>OAK_D_SR</code></strong> 请运行
+<code>shell
+  python3 run.py sr -m model_name -c config_json</code>
+若使用 <strong><code>OAK_D_LR</code></strong> 请运行
+<code>`shell
+  python3 run.py lr -m model_name -c config_json</code></p>
+</blockquote>
+</li>
+</ol>
+<h3 id="用法-3-sdk-不推荐">用法 3: SDK (不推荐)<a class="headerlink" href="#用法-3-sdk-不推荐" title="Permanent link">&para;</a></h3>
+<ol>
+<li>安装依赖
+    <div class="language-shell highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>sdk_scripts/requirements-sdk.txt
+</span></code></pre></div></li>
+<li>运行脚本
+    <div class="language-shell highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python3<span class="w"> </span>sdk_scripts/main_sdk_v1.2.py<span class="w"> </span>-m<span class="w"> </span>model_name<span class="w"> </span>-c<span class="w"> </span>config_json
+</span></code></pre></div>
+    <div class="language-shell highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python3<span class="w"> </span>sdk_scripts/main_sdk_v1.9.py<span class="w"> </span>-conf<span class="w"> </span>config_json
+</span></code></pre></div></li>
+</ol>
+<blockquote>
+<p><strong>注意</strong>：</p>
+<ul>
+<li><code>model_name</code> 是来自 DepthAI 模型库 (<a href="https://zoo.luxonis.com">https://zoo.luxonis.com</a>) 的模型名称或 blob 文件的相对路径。
+    请查看我们的模型库以查看可用的预训练模型，或使用 <code>-ls/--list_models</code> 参数查看可用模型。</li>
+<li><code>config_json</code> 是带有 Yolo 模型元数据（输入形状、锚点、标签等）的 JSON 的相对路径。</li>
+</ul>
+</blockquote>
+<h2 id="jsons">JSONs<a class="headerlink" href="#jsons" title="Permanent link">&para;</a></h2>
+<p>我们已经为常见的 Yolo 版本提供了一些 JSON。您可以编辑它们并为您的模型设置它们，如上述教程中的后续步骤部分所述。如果您要更改教程中的某些参数，则应编辑相应的参数。一般来说，JSON
+中的设置应该遵循模型的 CFG 中的设置。对于 YoloV5，默认设置应与 YoloV3 相同。</p>
+<p><strong>Note</strong>：值必须与训练期间在 CFG 中设置的值相匹配。如果您使用不同的输入宽度，您还应该将 <code>side32</code> 更改为 <code>sideX</code>
+并将 <code>side16</code> 更改为 <code>sideY</code>，其中 <code>X = width16</code> 和 <code>Y = width32</code>。如果您使用的是非微型模型，则这些值为 <code>width8</code>、<code>width16</code>
+和 <code>width32</code>。</p>
+<p>您还可以更改 IOU 和置信度阈值。如果多次检测到同一个目标，则增加 IOU
+阈值。如果没有检测到足够的目标，则降低置信度阈值。请注意，这不会神奇地改善您的目标检测器，但如果某些目标由于阈值太高而被过滤掉，则可能会有所帮助。</p>
+<h2 id="depth-信息">Depth 信息<a class="headerlink" href="#depth-信息" title="Permanent link">&para;</a></h2>
+<p>DepthAI 使您能够利用深度信息并获取检测到的对象的 <code>x</code>、<code>y</code> 和 <code>z</code> 坐标。</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python3<span class="w"> </span>run.py<span class="w"> </span>api<span class="w"> </span>-m<span class="w"> </span>model_name<span class="w"> </span>-c<span class="w"> </span>config_json<span class="w"> </span>--spatial
+</span></code></pre></div>
+<p>或者</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python3<span class="w"> </span>main_sdk_v1.2.py<span class="w"> </span>-m<span class="w"> </span>model_name<span class="w"> </span>-c<span class="w"> </span>config_json<span class="w"> </span>--spatial
+</span></code></pre></div>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python3<span class="w"> </span>main_sdk_v1.9.py<span class="w"> </span>-conf<span class="w"> </span>config_json<span class="w"> </span>--spatial
+</span></code></pre></div>
+<p>如果您对使用 Yolo 检测器的深度信息感兴趣，
+请查看我们的 <a href="https://docs.oakchina.cn/projects/api/samples/SpatialDetection/spatial_tiny_yolo.html">文档</a>。
+<img alt="SpatialObjectDetection" src="https://user-images.githubusercontent.com/56075061/144864639-4519699e-d3da-4172-b66b-0495ea11317e.png" /></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.ad660dcc.min.js"></script>
+      
+    
+  </body>
+</html>
