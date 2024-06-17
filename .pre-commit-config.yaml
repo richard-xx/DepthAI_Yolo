@@ -15,7 +15,7 @@ repos:
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.4.8
+    rev: v0.4.9
     hooks:
       - id: ruff
         args: [ --fix, --unsafe-fixes, --exit-non-zero-on-fix ]
@@ -23,7 +23,7 @@ repos:
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
-    rev: 0.2.10
+    rev: 0.2.11
     hooks:
       # Run the pip compile
       - id: pip-compile
