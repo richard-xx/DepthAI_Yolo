@@ -1,4 +1,11 @@
 site_name: Depthai Yolo
+site_url: https://richard-xx.github.io/depthai_yolo
+edit_uri: /blob/main/docs/
+
+# Repository
+repo_name: richard-xx/depthai_yolo
+repo_url: https://github.com/richard-xx/depthai_yolo
+
 
 theme:
   name: material
@@ -87,6 +94,8 @@ plugins:
 
 nav:
   - Home: index.md
-  - OAK D: oak-d.md
-  - OAK SR: sr.md
-  - OAK LR: lr.md
+  - Oak Custom Docs: https://richard-xx.github.io/oak_custom_doc/oak/pointcloud/point_cloud_viewer/
+  - Yolo:
+    - OAK D: oak-d.md
+    - OAK SR: sr.md
+    - OAK LR: lr.md
