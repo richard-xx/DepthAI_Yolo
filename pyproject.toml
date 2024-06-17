@@ -26,7 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dynamic = ["version", "dependencies", "optional-dependencies"]
+dynamic = ["version", "dependencies",]
 
 [project.urls]
 Repository = "https://github.com/richard-xx/DepthAI_Yolo.git"
@@ -36,6 +36,12 @@ Repository = "https://github.com/richard-xx/DepthAI_Yolo.git"
 [project.scripts]
 depthai_yolo = "depthai_yolo.cli:app"
 depthai_yolo_download = "depthai_yolo.download_models:app"
+
+[project.optional-dependencies]
+doc = [
+    "mkdocs-material>=9.5.27",
+    "mkdocs-typer>=0.0.3",
+]
 
 [tool.rye]
 dev-dependencies = [

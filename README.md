@@ -2,7 +2,7 @@
 
 ![Yolo-on-device](https://user-images.githubusercontent.com/56075061/144863222-a52be87e-b1f0-4a0a-b39b-f865bbb6e4a4.png)
 
-该存储库 (
+该[存储库](https://github.com/richard-xx/DepthAI_Yolo) (
 修改自 [device-decoding](https://github.com/luxonis/depthai-experiments/tree/master/gen2-yolo/device-decoding))
 包含直接使用 DepthAI SDK (`main_sdk.py`) 或 DepthAI API (`main_api.py`) 在设备上解码运行 Yolo 目标检测的代码。目前，支持的版本有：
 
@@ -15,7 +15,7 @@
 * `YoloV9`,
 * `YoloV10` 。
 
-我们在 `main_sdk_v*.py` 和 `main_api.py` 中使用相同样式的 JSON 解析，但您也可以在代码中手动设置这两种情况下的值。
+我们在 `main_sdk_v*.py(不推荐)` 和 `main_api.py` 中使用相同样式的 JSON 解析，但您也可以在代码中手动设置这两种情况下的值。
 
 ### 导出模型
 
@@ -34,6 +34,8 @@
         * [YoloV6](https://github.com/meituan/YOLOv6),
         * [YoloV7](https://github.com/WongKinYiu/yolov7)
         * [YoloV8](https://github.com/ultralytics/ultralytics),
+        * [YoloV9](https://github.com/WongKinYiu/yolov9), [YoloV9_ultralytics](https://github.com/ultralytics/ultralytics),
+        * [YoloV10](https://github.com/THU-MIG/yolov10),
         * [YoloV5_training.ipynb](https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV5_training.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV5_training.ipynb)
         * [YoloV6_training.ipynb](https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV6_training.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV6_training.ipynb)
         * [YoloV7_training.ipynb](https://github.com/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV7_training.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/luxonis/depthai-ml-training/blob/master/colab-notebooks/YoloV7_training.ipynb)
@@ -47,6 +49,12 @@
         * [OAK 相机如何将 YOLO 系列模型转换成 blob 格式？](https://www.oakchina.cn/tag/yolo/)
 
 ## 用法
+
+::: mkdocs-typer
+    :module: depthai_yolo.cli
+    :command: app
+    :prog_name: depthai_yolo
+    :depth: 4
 
 ### 用法 1: 模块安装
 
@@ -65,7 +73,7 @@
     > ```
 
     ```shell
-    python3 -m depthai_yolo api -m model_name -c config_json
+    python3 -m depthai_yolo oak -m model_name -c config_json
     # 或
     depthai_yolo api -m model_name -c config_json
     ```
@@ -74,6 +82,12 @@
     >    python3 -m depthai_yolo sr -m model_name -c config_json
     >    # 或
     >    depthai_yolo sr -m model_name -c config_json
+    >    ```
+   > 若使用 **`OAK_D_LR`** 请运行
+   >    ```shell
+    >    python3 -m depthai_yolo lr -m model_name -c config_json
+    >    # 或
+    >    depthai_yolo lr -m model_name -c config_json
     >    ```
 
 ### 用法 2: 源码运行
@@ -95,13 +109,16 @@
     > ```
 
     ```shell
-    python3 run.py api -m model_name -c config_json
+    python3 run.py oak -m model_name -c config_json
     ```
    > 若使用 **`OAK_D_SR`** 请运行
    > ```shell
     >   python3 run.py sr -m model_name -c config_json
     > ```
-   >
+   > 若使用 **`OAK_D_LR`** 请运行
+   > ```shell
+    >   python3 run.py lr -m model_name -c config_json
+    > ``
 
 ### 用法 3: SDK (不推荐)
 1. 安装依赖
