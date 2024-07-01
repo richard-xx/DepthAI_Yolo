@@ -63,7 +63,3 @@ def main(pipeline_func, **kwargs):
                 cv2.imencode(".jpg", frame)[1].tofile(filename)
                 print(f"save to: {filename}")
         cv2.destroyAllWindows()
-
-
-if __name__ == "__main__":
-    main()

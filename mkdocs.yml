@@ -1,10 +1,10 @@
 site_name: Depthai Yolo
-site_url: https://richard-xx.github.io/depthai_yolo
+site_url: https://richard-xx.github.io/DepthAI_Yolo/
 edit_uri: /blob/main/docs/
 
 # Repository
-repo_name: richard-xx/depthai_yolo
-repo_url: https://github.com/richard-xx/depthai_yolo
+repo_name: richard-xx/DepthAI_Yolo
+repo_url: https://github.com/richard-xx/DepthAI_Yolo
 
 
 theme:

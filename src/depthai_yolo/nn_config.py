@@ -62,7 +62,7 @@ class NNConfig(BaseModel):
 class Config(BaseModel):
     """This schema defines the fields and their types for the overall configuration."""
 
-    model: Annotated[Model, Field(..., description="Model configuration.")]
+    model: Annotated[Model, Field(None, description="Model configuration.")]
     handler: Annotated[Optional[str], Field(default=None, description="Name of the handler.")]
     nn_config: Annotated[NNConfig, Field(...)]
     openvino_version: Annotated[Optional[str], Field(default=None, description="Version of OpenVINO.")]
