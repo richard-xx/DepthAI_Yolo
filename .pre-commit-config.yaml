@@ -16,7 +16,7 @@ repos:
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.5.0
+    rev: v0.6.3
     hooks:
       - id: ruff
         args: [ --fix, --unsafe-fixes, --exit-non-zero-on-fix ]
@@ -24,18 +24,18 @@ repos:
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
-    rev: 0.2.13
+    rev: 0.4.3
     hooks:
       # Run the pip compile
       - id: pip-compile
         name: pip-compile requirements.in
-        args: [ pyproject.toml, -o, requirements.txt ]
+        args: [ pyproject.toml, -U, -o, requirements.txt ]
         files: requirements/requirements.in
 
-  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.16.0
-    hooks:
-      - id: commitlint
-        stages: [ commit-msg ]
-        additional_dependencies:
-          - 'commitlint-config-gitmoji'
+#  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+#    rev: v9.17.0
+#    hooks:
+#      - id: commitlint
+#        stages: [ commit-msg ]
+#        additional_dependencies:
+#          - 'commitlint-config-gitmoji'

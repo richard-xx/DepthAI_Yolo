@@ -1,0 +1,321 @@
+#!/usr/bin/env python3
+# coding=utf-8
+from __future__ import annotations
+
+import argparse
+import re
+import time
+from pathlib import Path
+
+import blobconverter
+import cv2
+import depthai as dai
+import jsons
+import numpy as np
+from utils import FPSHandler, display_frame, get_device_info
+
+ROOT = Path(__file__).parent
+model_dir = ROOT.joinpath("models")
+blobconverter.set_defaults(output_dir=model_dir, version="2021.4")
+
+# https://github.com/luxonis/depthai-model-zoo/tree/main/models
+depthai_model_zoo = [
+    "yolov3_coco_416x416",
+    "yolov4_coco_608x608",
+    "yolov4_tiny_coco_416x416",
+    "yolov5n_coco_416x416",
+    "yolov5n_coco_640x352",
+    "yolov6n_coco_416x416",
+    "yolov6n_coco_640x640",
+    "yolov6nr1_coco_512x288",
+    "yolov6nr1_coco_640x352",
+    "yolov6nr3_coco_416x416",
+    "yolov6nr3_coco_640x352",
+    "yolov6t_coco_416x416",
+    "yolov7_coco_416x416",
+    "yolov7tiny_coco_416x416",
+    "yolov7tiny_coco_640x352",
+    "yolov8n_coco_416x416",
+    "yolov8n_coco_640x352",
+]
+open_model_zoo = [
+    "yolo-v3-tf",
+    "yolo-v3-tiny-tf",
+    "yolo-v4-tf",
+    "yolo-v4-tiny-tf",
+]
+
+# parse arguments
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument(
+    "-m",
+    "--model",
+    required=True,
+    help="Provide model name or model path for inference",
+    # default="yolov8n_coco_640x352",
+    type=Path,
+)
+parser.add_argument(
+    "-c",
+    "--config",
+    help="Provide config path for inference",
+    # default="json/yolov8n_coco_640x352.json",
+    type=Path,
+)
+parser.add_argument(
+    "-s",
+    "--spatial",
+    help="Display spatial information",
+    action="store_true",
+    default=False,
+)
+parser.add_argument(
+    "-F",
+    "--fullFov",
+    help="If to :code:`False`, "
+    "it will first center crop the frame to meet the NN aspect ratio and then scale down the image",
+    default="True",
+)
+parser.add_argument(
+    "--syncNN",
+    help="Show synced frame",
+    action="store_true",
+    default=False,
+)
+parser.add_argument(
+    "--high_res",
+    help="Show synced frame",
+    action="store_true",
+    default=False,
+)
+parser.add_argument("--classes", nargs="+", type=int, help="filter by class: --classes 0, or --classes 0 2 3")
+parser.add_argument(
+    "-usbs", "--usbSpeed", type=str, default="usb3", choices=["usb2", "usb3"], help="Force USB communication speed."
+)
+
+parser.add_argument(
+    "-fps", "--fps", type=float, default=25, help="Set capture FPS for all cameras. Default: %(default)s"
+)
+
+args = parser.parse_args()
+if args.fullFov.upper() in {"TRUE", "ON"}:
+    args.fullFov = True
+elif args.fullFov.upper() in {"FALSE", "OFF"}:
+    args.fullFov = False
+
+FPS = args.fps
+
+num_classes = 80
+
+# get model path
+nn_path = args.model.resolve().absolute()
+if not nn_path.is_file():
+    nn_name = nn_path.stem
+
+    if nn_name in depthai_model_zoo + open_model_zoo:
+        list_file = list(model_dir.glob(f"{nn_name}*.blob"))
+        if list_file:
+            nn_path = list_file[0]
+        else:
+            print(f"Model ({nn_name}) not found in local. Looking into DepthAI model zoo.")
+            if nn_name in depthai_model_zoo:
+                nn_path = blobconverter.from_zoo(
+                    nn_name,
+                    shaves=6,
+                    zoo_type="depthai",
+                    use_cache=True,
+                )
+            elif nn_name in open_model_zoo:
+                nn_path = blobconverter.from_zoo(
+                    nn_name,
+                    shaves=6,
+                    zoo_type="intel",
+                    use_cache=True,
+                )
+    else:
+        print(f"Model ({nn_name}) not found in model zoo. check model is in: ")
+        print(depthai_model_zoo + open_model_zoo)
+        raise FileNotFoundError
+    args.config = ROOT.joinpath("json", f"{nn_name}.json")
+
+args.model = nn_path
+
+model = dai.OpenVINO.Blob(args.model)
+dim = next(iter(model.networkInputs.values())).dims
+nn_width, nn_height = dim[:2]
+print(f"nnWidth = {nn_width}, nnHeight = {nn_height}")
+
+output_name, output_tenser = next(iter(model.networkOutputs.items()))
+num_classes = output_tenser.dims[2] - 5 if "yolov6" in output_name else output_tenser.dims[2] // 3 - 5
+
+# parse config
+if args.config is None or not args.config.exists():
+    config_path = nn_path.resolve().absolute().with_suffix(".json")
+    if not config_path.exists() and re.search("_openvino_(.*?)_(.*?)shave", nn_path.stem):
+        config_path = re.sub("_openvino_(.*?)_(.*?)shave", "", nn_path.stem)
+else:
+    config_path = args.config.resolve().absolute()
+
+assert config_path.exists(), ValueError(f"Path {config_path} does not exist!")
+
+args.config = config_path
+print(f"args: {args}")
+
+if args.spatial:
+    # Better handling for occlusions
+    lr = True
+    # Closer-in minimum depth, disparity range is doubled
+    extended = False
+    # Better accuracy for longer distance, fractional disparity 32-levels
+    subpixel = False
+
+with config_path.open() as f:
+    config = jsons.load(f)
+nn_config = config.get("nn_config", {})
+
+# extract metadata
+metadata = nn_config.get("NN_specific_metadata", {})
+coordinates = metadata.get("coordinates", 4)
+anchors = metadata.get("anchors", [])
+anchor_masks = metadata.get("anchor_masks", {})
+iou_threshold = metadata.get("iou_threshold", 0.5)
+confidence_threshold = metadata.get("confidence_threshold", 0.5)
+
+print(f"config: {metadata}")
+
+# parse labels
+nn_mappings = config.get("mappings", {})
+labels = nn_mappings.get("labels", [])
+
+
+def main():
+    # Connect to a device and start pipeline
+    with dai.Device(
+        dai.OpenVINO.VERSION_2021_4,
+        get_device_info(),
+        maxUsbSpeed=dai.UsbSpeed.HIGH if args.usbSpeed == "usb2" else dai.UsbSpeed.SUPER_PLUS,
+    ) as device:
+        if args.spatial and device.getIrDrivers():
+            device.setIrLaserDotProjectorBrightness(200)  # in mA, 0..1200
+            device.setIrFloodLightBrightness(0)  # in mA, 0..1500
+        device.startPipeline(create_pipeline())
+        # Output queues will be used to get the rgb frames and nn data from the outputs defined above
+        image_queue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+        detect_queue = device.getOutputQueue(name="nn", maxSize=4, blocking=False)
+
+        frame = None
+        detections = []
+        # Random Colors for bounding boxes
+        bbox_colors = np.random.default_rng().integers(256, size=(num_classes, 3), dtype=int).tolist()
+        fps_handler = FPSHandler()
+
+        while True:
+            image_queue_data = image_queue.tryGet()
+            detect_queue_data = detect_queue.tryGet()
+
+            if image_queue_data is not None:
+                frame = image_queue_data.getCvFrame()
+                fps_handler.tick("color")
+
+            if detect_queue_data is not None:
+                detections = detect_queue_data.detections
+                if args.classes is not None:
+                    detections = [detection for detection in detections if detection.label in args.classes]
+
+                fps_handler.tick("nn")
+
+            if frame is not None:
+                fps_handler.draw_fps(frame, "color")
+                display_frame("rgb", frame, detections, bbox_colors, labels)
+                # detections = []
+
+            key = cv2.waitKey(1)
+
+            if key == ord("q"):
+                break
+            if key == ord("s"):
+                filename = f"{time.strftime('%Y%m%d_%H%M%S', time.localtime())}.jpg"
+                # for chinese dir
+                cv2.imencode(".jpg", frame)[1].tofile(filename)
+                # cv2.imwrite(filename,frame)
+                print(f"save to: {filename}")
+        cv2.destroyAllWindows()
+
+
+def create_pipeline():
+    # Create pipeline
+    pipeline = dai.Pipeline()
+    pipeline.setOpenVINOVersion(dai.OpenVINO.VERSION_2022_1)
+
+    # Define sources and outputs
+    cam_rgb = pipeline.create(dai.node.ColorCamera)
+    detection_network = create_stereo(pipeline) if args.spatial else pipeline.create(dai.node.YoloDetectionNetwork)
+    xout_rgb = pipeline.create(dai.node.XLinkOut)
+    nn_out = pipeline.create(dai.node.XLinkOut)
+
+    xout_rgb.setStreamName("rgb")
+    nn_out.setStreamName("nn")
+
+    # Properties
+    cam_rgb.setPreviewSize(nn_width, nn_height)
+    cam_rgb.setBoardSocket(dai.CameraBoardSocket.CAM_A)
+    cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+    cam_rgb.setInterleaved(False)
+    cam_rgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+    cam_rgb.setFps(FPS)
+    cam_rgb.setPreviewKeepAspectRatio(not args.fullFov)
+
+    # Network specific settings
+    detection_network.setConfidenceThreshold(confidence_threshold)
+    detection_network.setNumClasses(num_classes)
+    detection_network.setCoordinateSize(coordinates)
+    detection_network.setAnchors(anchors)
+    detection_network.setAnchorMasks(anchor_masks)
+    detection_network.setIouThreshold(iou_threshold)
+    detection_network.setBlob(model)
+    # detection_network.setNumInferenceThreads(2)
+    detection_network.input.setBlocking(False)
+    detection_network.input.setQueueSize(1)
+
+    # Linking
+    cam_rgb.preview.link(detection_network.input)
+    if args.syncNN:
+        detection_network.passthrough.link(xout_rgb.input)
+    elif args.high_res:
+        cam_rgb.video.link(xout_rgb.input)
+    else:
+        cam_rgb.preview.link(xout_rgb.input)
+    detection_network.out.link(nn_out.input)
+
+    return pipeline
+
+
+def create_stereo(pipeline):
+    mono_left = pipeline.createMonoCamera()
+    mono_left.setBoardSocket(dai.CameraBoardSocket.CAM_B)
+    mono_left.setResolution(dai.MonoCameraProperties.SensorResolution.THE_720_P)
+    mono_left.setFps(FPS)
+    mono_right = pipeline.createMonoCamera()
+    mono_right.setBoardSocket(dai.CameraBoardSocket.CAM_C)
+    mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_720_P)
+    mono_right.setFps(FPS)
+    stereo = pipeline.createStereoDepth()
+    stereo.initialConfig.setConfidenceThreshold(245)
+    stereo.setLeftRightCheck(lr)
+    stereo.setExtendedDisparity(extended)
+    stereo.setSubpixel(subpixel)
+    stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
+    mono_left.out.link(stereo.left)
+    mono_right.out.link(stereo.right)
+    detection_network: dai.node.NeuralNetwork | dai.node.YoloSpatialDetectionNetwork = pipeline.create(
+        dai.node.YoloSpatialDetectionNetwork
+    )
+    stereo.depth.link(detection_network.inputDepth)
+    detection_network.setDepthLowerThreshold(100)  # mm
+    detection_network.setDepthUpperThreshold(10_000)  # mm
+    detection_network.setBoundingBoxScaleFactor(0.3)
+    return detection_network
+
+
+if __name__ == "__main__":
+    main()

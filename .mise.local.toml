@@ -1,0 +1,31 @@
+# https://hatch.pypa.io/1.9/version/
+[tasks.version]
+run = "hatch version"
+description = "Show the current version"
+alias = ["v", "version"]
+
+[tasks."version:beta"]
+run = "hatch version beta"
+description = "Bump the version to the next beta version 1.0.0 -> 1.0.0b1"
+alias = ["beta", "b"]
+
+[tasks."version:major"]
+run = "hatch version major"
+description = "Bump the version to the next major version 1.0.0 -> 2.0.0"
+alias = ["major", "m"]
+
+[tasks."version:minor"]
+run = "hatch version minor"
+description = "Bump the version to the next minor version 1.0.0 -> 1.1.0"
+alias = ["minor", "mi"]
+
+[tasks."version:micro"]
+run = "hatch version micro"
+description = "Bump the version to the next micro version 1.0.0 -> 1.0.1"
+alias = ["micro", "p"]
+
+
+[tasks."version:release"]
+run = "hatch version release"
+description = "Bump the version to the next micro version 1.0.0dev -> 1.0.0"
+alias = ["release", "r"]

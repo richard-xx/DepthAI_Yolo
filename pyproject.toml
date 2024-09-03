@@ -11,7 +11,7 @@ maintainers = [
     { name = "Richard", email = "richard@arducam.com" },
 ]
 description = "YOLOs object detection example using DepthAI"
-requires-python = ">= 3.7"
+requires-python = ">= 3.8"
 license = { text = "MIT License" }
 readme = "README.md"
 keywords = ["depthai", "yolo", "object detection"]
@@ -43,15 +43,6 @@ doc = [
     "mkdocs-typer>=0.0.3",
 ]
 
-[tool.rye]
-dev-dependencies = [
-    "setuptools>=70.0.0",
-    "pip>=24.0",
-    "wheel>=0.43.0",
-    "build",
-    "hatch>=1.12.0",
-]
-
 [tool.hatch.version]
 source = "regex_commit"
 path = "src/depthai_yolo/__init__.py"
@@ -74,3 +65,10 @@ sources = { "src/depthai_yolo" = "depthai_yolo" }
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["requirements/requirements.in"]
+
+[tool.uv]
+package = true
+dev-dependencies = [
+    "pip>=24.2",
+    "setuptools>=74.1.0",
+]

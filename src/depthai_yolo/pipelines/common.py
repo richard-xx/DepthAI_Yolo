@@ -50,6 +50,10 @@ def create_pipeline(**kwargs):
         cam_rgb.preview.link(xout_image.input)
     detection_network.out.link(nn_out.input)
 
+    xin_control = pipeline.create(dai.node.XLinkIn)
+    xin_control.setStreamName("control")
+    xin_control.out.link(cam_rgb.inputControl)
+
     return pipeline
 
 

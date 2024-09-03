@@ -74,6 +74,10 @@ def create_pipeline(**kwargs):
 
     detection_network.out.link(nn_out.input)
 
+    xin_control = pipeline.create(dai.node.XLinkIn)
+    xin_control.setStreamName("control")
+    xin_control.out.link(mono_right.inputControl)
+
     return pipeline
 
 
