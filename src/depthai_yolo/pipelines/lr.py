@@ -43,8 +43,10 @@ def create_pipeline(**kwargs):
     pipeline = dai.Pipeline()
 
     cam_rgb = pipeline.create(dai.node.ColorCamera)
+    cam_rgb.setBoardSocket(cam_left_socket[stereo_pair])
+
     detection_network = (
-        create_stereo(pipeline, cam_rgb=cam_rgb, **kwargs)
+        create_stereo(pipeline, cam_left=cam_rgb, **kwargs)
         if kwargs.get("spatial", False)
         else pipeline.create(dai.node.YoloDetectionNetwork)
     )
@@ -56,7 +58,6 @@ def create_pipeline(**kwargs):
     nn_out.setStreamName("nn")
 
     cam_rgb.setPreviewSize(nn_config.nn_width, nn_config.nn_height)
-    cam_rgb.setBoardSocket(cam_left_socket[stereo_pair])
     cam_rgb.setResolution(color_res)
     cam_rgb.setIspScale(isp_scale)
     cam_rgb.setInterleaved(False)
